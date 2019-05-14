@@ -24,7 +24,7 @@ class Prueba():
 		self.obstacles = []
 		self.obstacleDiamters = []
 		# IP
-		self.ipAddress = ""
+		self.ipAddress = "192.168.2.3"
 
 		# Movement
 		# Output ports definition
@@ -45,7 +45,8 @@ class Prueba():
 		try:
 			ack = rospy.ServiceProxy('ack_service', AckService)
 			response = ack(GRUPO, ip)
-			return response
+                        print(response)
+			return response.state
 		except rospy.ServiceException, e:
 			print "Service call to ack service failed: %s" %e
 
@@ -57,8 +58,14 @@ class Prueba():
 		self.moving = True
 
 	def move(self, velR, velL):
-		velMotorR.ChangeDutyCycle(velR)
-		velMotorL.ChangeDutyCycle(velL)
+		self.velMotorR.ChangeDutyCycle(velR)
+		self.velMotorL.ChangeDutyCycle(velL)
+
+        def stop(self):
+                self.velMotorR.ChangeDutyCycle(0)
+                self.velMotorL.ChangeDutyCycle(0)
+                self.moving = False
+                
 
 	# Main method
 	def main(self):
@@ -78,6 +85,7 @@ class Prueba():
 			# Move if start service was asked
 			if self.moving:
 				self.move(20,20)
+                                rospy.Timer(rospy.Duration(5),self.stop,True)
 			else:
 				self.move(0,0)
 
