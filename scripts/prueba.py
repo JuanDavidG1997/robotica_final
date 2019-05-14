@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 import rospy
+import RPi.GPIO as GPIO
 from geometry_msgs.msg import Pose
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 
+# CONSTANTES
+GRUPO = 15
+PIN_MOTOR_L = 24
+PIN_MOTOR_R = 25
 
 class Prueba():
 	# Constructor
@@ -18,6 +23,20 @@ class Prueba():
 		self.nObstacle = 0
 		self.obstacles = []
 		self.obstacleDiamters = []
+		# IP
+		self.ipAddress = ""
+
+		# Movement
+		# Output ports definition
+		GPIO.setmode(GPIO.BCM)
+		GPIO.setwarnings(False)
+		GPIO.setup(PIN_MOTOR_R, GPIO.OUT)
+		GPIO.setup(PIN_MOTOR_L, GPIO.OUT)
+		# Motor vel initialization
+		self.velMotorR = GPIO.PWM(PIN_MOTOR_R, 100)
+		self.velMotorR.start(0)
+		self.velMotorL = GPIO.PWM(PIN_MOTOR_L, 100)
+		self.velMotorL.start(0)
 
 	# Ack Service request
 	def askAckService(self, ip):
@@ -25,7 +44,7 @@ class Prueba():
 		rospy.wait_for_service('ack_service')
 		try:
 			ack = rospy.ServiceProxy('ack_service', AckService)
-			response = ack(15, ip)
+			response = ack(GRUPO, ip)
 			return response
 		except rospy.ServiceException, e:
 			print "Service call to ack service failed: %s" %e
@@ -37,21 +56,30 @@ class Prueba():
 		self.obstacles = data.obstacles_array
 		self.moving = True
 
+	def move(self, velR, velL):
+		velMotorR.ChangeDutyCycle(velR)
+		velMotorL.ChangeDutyCycle(velL)
+
 	# Main method
 	def main(self):
-		ipAddress = ""
+		# ------- ROS -------
 		# Node init
 		rospy.init_node('test_node', anonymous=False)
 		# Services
 		start = rospy.Service('start_service', StartService, self.handleStartService)
-
 		# Rate
 		rate = rospy.Rate(10)
 
+		# Loop Cycle
 		while not rospy.is_shutdown():
-
+			# Ask for ack service
 			while not self.readyToStart:
-				self.readyToStart = self.askAckService(ipAddress)
+				self.readyToStart = self.askAckService(self.ipAddress)
+			# Move if start service was asked
+			if self.moving:
+				self.move(20,20)
+			else:
+				self.move(0,0)
 
 		rate.sleep()
 
