@@ -7,7 +7,7 @@ import networkx as nx
 import numpy as np
 import rospy
 from simple_rrt import RRT
-from graph_2 import graph_building
+from Graph import Graph
 from robotica_final.srv import PathService
 
 

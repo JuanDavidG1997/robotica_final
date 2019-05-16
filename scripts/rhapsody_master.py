@@ -5,7 +5,8 @@ import numpy as np
 from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Int32, String
 from master_msgs_iele3338.srv import AckService, EndService, StartService
-from robotica_final.srv import MoveService, ReadService, PathService
+#from robotica_final.srv import MoveService, ReadService, PathService
+from robotica_final.srv import *
 
 # Constants
 GROUP = 15
@@ -52,7 +53,7 @@ class RhapsodyMaster:
         self.start = data.start
         self.goal = data.goal
         self.n_obstacles = data.n_obstacles
-        self.obstacles = data.obstacles_array
+        self.obstacles = data.obstacles
         self.request_path = True
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -169,4 +170,12 @@ class RhapsodyMaster:
             if correct_password == 1:
                 self.change_state(FINISHED_TEST)
 
-        rate.sleep()
+            rate.sleep()
+
+
+if __name__ == '__main__':
+    try:
+        master = RhapsodyMaster()
+        master.main()
+    except rospy.ROSInterruptException:
+        pass
