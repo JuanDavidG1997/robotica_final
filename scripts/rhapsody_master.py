@@ -7,9 +7,11 @@ from std_msgs.msg import Int32, String
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 from robotica_final.srv import MoveService, ReadService, PathService
 
+# Constants
 GROUP = 15
 IP = "192.168.2.3"
 
+# Possible states
 ACK_SERVICE = "AckService"
 READY_TO_START = "ReadyToStart"
 PATH_PLANNING = "PathPlanning"
@@ -20,6 +22,7 @@ FINISHED_TEST = "FinishedTest"
 
 
 class RhapsodyMaster:
+
     def __init__(self):
         self.actual_state = ""
         self.start = None
@@ -33,18 +36,28 @@ class RhapsodyMaster:
         self.password = 0
         self.request_path = False
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------Topic Callbacks--------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
     def estimated_pos_callback(self, data):
         self.estimated_pos = data
 
     def mov_state_callback(self, data):
         self.mov_state = data
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------Service handler--------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
     def handle_start_service(self, data):
         self.start = data.start
         self.goal = data.goal
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles_array
         self.request_path = True
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------Service requests--------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
     def ask_for_ack_service(self):
         print("Requesting ack_service...")
@@ -107,36 +120,52 @@ class RhapsodyMaster:
         except rospy.ServiceException:
             print("Service call to end service failed")
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------Additional methods-----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
     def change_state(self, p_state):
         self.actual_state = p_state
         return self.actual_state
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------Main--------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
     def main(self):
-
+        # Node init
         rospy.init_node('rhapsody_master', anonymous=False)
-
+        # Service provider
         start = rospy.Service('start_service', StartService, self.handle_start_service)
-
+        # Topic subscriber
         rospy.Subscriber('estimated_pos', Point, self.estimated_pos_callback)
         rospy.Subscriber('mov_state', Int32, self.mov_state_callback)
-
+        # Topic publisher
         state_publisher = rospy.Publisher('state', String, queue_size=10)
-
+        # Local variables
         ready_to_start = False
-        rate = rospy.Rate(10)
         correct_password = 0
+        # Frequency set
+        rate = rospy.Rate(10)
+        # Local cycle
         while not rospy.is_shutdown():
             state_publisher.publish(self.actual_state)
+            # Ready to start. ACK_SERVICE
             while not ready_to_start:
                 ready_to_start = self.ask_for_ack_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
+            # Received Start_Service
+            # Asking for path. PATH_SERVICE
             if self.request_path:
                 path = self.ask_for_path()
+                # Asking for movement. ASK_MOVE
                 self.ask_for_move(path)
+            # If arrived. ASK_READ
             if self.mov_state == 2:
                 self.password = self.ask_for_read()
+                # Checking received password. ASK_END_SERVICE
                 correct_password = self.ask_for_end_service()
+            # FINISHED_TEST
             if correct_password == 1:
                 self.change_state(FINISHED_TEST)
 
