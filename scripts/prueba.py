@@ -45,7 +45,7 @@ class Prueba():
 		try:
 			ack = rospy.ServiceProxy('ack_service', AckService)
 			response = ack(GRUPO, ip)
-                        print(response)
+			print(response)
 			return response.state
 		except rospy.ServiceException, e:
 			print "Service call to ack service failed: %s" %e
@@ -61,10 +61,10 @@ class Prueba():
 		self.velMotorR.ChangeDutyCycle(velR)
 		self.velMotorL.ChangeDutyCycle(velL)
 
-        def stop(self):
-                self.velMotorR.ChangeDutyCycle(0)
-                self.velMotorL.ChangeDutyCycle(0)
-                self.moving = False
+	def stop(self):
+			self.velMotorR.ChangeDutyCycle(0)
+			self.velMotorL.ChangeDutyCycle(0)
+			self.moving = False
                 
 
 	# Main method

@@ -1,0 +1,6 @@
+float32 x
+float32 y
+string algorithm
+obstacle_list
+---
+Int32 password
