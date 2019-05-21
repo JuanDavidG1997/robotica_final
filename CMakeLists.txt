@@ -61,7 +61,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
    FILES
    MoveService.srv
-   #ReadService.srv   
+   ReadService.srv   
    PathService.srv  
  )
 
