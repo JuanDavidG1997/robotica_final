@@ -4,40 +4,47 @@ import rospy
 import math as m
 from geometry_msgs.msg import Pose, Point, Twist
 from std_msgs.msg import Int16, String
-from robotica_final.srv import MoveService, PathService
 from robotica_final.srv import *
 
-# Constants
+# Threshold
 THRESHOLD_LIN = 0.1
 THRESHOLD_ANG = 0.2
-
+# States
+WAITING = 0
+MOVING = 1
+EMERGENCY_STOP = 2
+FINISHED = 3
+POSITIONING = 4
 # Control variables
 K_RHO = 1.25
 K_ALPHA = 1.5
 K_BETA = -0.5
 K = [K_RHO, K_ALPHA, K_BETA]
 
+
+# Main Class for the robot control
 class RobotControl:
 
     def __init__(self):
-        # Position Atributes
+        # Position Attributes
         self.xPos = 0.0
         self.yPos = 0.0
         self.theta = 0.0
-        # Path Atributes
+        # Path Attributes
         self.path = []
         self.currentGoal = [0, 0, 0]
-        # State Atributes
-        self.moving = False
-        self.positioning = False
-        self.movementState = Int16()
-        # Vel atribute
+        # State Attributes
+        self.state = WAITING
+        # self.moving = False
+        # self.positioning = False
+        # Pub Messages
         self.vel = Twist()
+        self.movementState = Int16()
 
     def handle_move_service(self, msg):
         self.path[:][0] = msg.pathx
         self.path[:][1] = msg.pathy
-        self.moving = True
+        self.state = MOVING
 
     def estimated_pos_callback(self, msg):
         self.xPos = msg.position.x
@@ -52,7 +59,7 @@ class RobotControl:
         # Direction Variables calculation
         deltay = self.currentGoal[1] - self.yPos
         deltax = self.currentGoal[0] - self.xPos
-        rho = m.sqrt((deltax) ** 2 + (deltay) ** 2)
+        rho = m.sqrt(deltax** 2 + deltay** 2)
         alpha = m.atan2(deltay, deltax) - self.theta
         beta = - self.theta - alpha
         # Angles only between -pi and pi
@@ -81,27 +88,8 @@ class RobotControl:
             v = -K[0] * rho
         # Angular Vel
         w = K[1] * alpha + K[2] * beta
-        # Verify if finished
-        if self.positioning:
-            # Verify orientation
-            if (abs(rho) < THRESHOLD_LIN) and not (abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG):
-                orientationError = self.theta - self.currentGoal[2]
-                if abs(orientationError) > m.pi / 2:
-                    w = orientationError / m.pi
-                    v = 0
-                else:
-                    w = - orientationError / m.pi
-                    v = 0
-
-        # Verify if finish
-        finished = abs(rho) < THRESHOLD_LIN and abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG
-        if finished:
-            self.movementState = 2
-            v = 0
-            w = 0
         # Return velocities
         return [v, w]
-
 
     def main(self):
         # --------------------------- ROS ---------------------------
@@ -114,44 +102,66 @@ class RobotControl:
         # Topic publisher
         pubState = rospy.Publisher('mov_state', Int16, queue_size=10)
         pubVel = rospy.Publisher('cmd_vel', Twist, queue_size=10)
-        # Frequency set
+        # Frequency rate
         rate = rospy.Rate(10)
         # --------------------- Local variables ---------------------
-        # Iteration varaible
+        # Iteration variables
         p = 1
-        # State variables
-        arrived = False
+        arrivedToCurrentGoal = True
+        # Velocities
+        v = 0
+        w = 0
 
         # Local while cycle
         while not rospy.is_shutdown():
             # Verify if there is an obstacle near
-            obstacle = self.verify_if_obstacle()
-            # Verify moving condition is true
-            if self.moving and not obstacle:
-                self.movementState = 1
+            if self.verify_if_obstacle():
+                self.state = EMERGENCY_STOP
+                v = 0
+                w = 0
+
+            # Positioning State
+            if self.state == POSITIONING:
+                # Verify if finish
+                finishCondition = abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG
+                if finishCondition:
+                    self.state = FINISHED
+                    v = 0
+                    w = 0
+                else:
+                    # Verify orientation
+                    oriented = (abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG)
+                    if not oriented:
+                        orientationError = self.theta - self.currentGoal[2]
+                        if abs(orientationError) > m.pi / 2:
+                            w = orientationError / m.pi
+                            v = 0
+                        else:
+                            w = - orientationError / m.pi
+                            v = 0
+
+            # Moving State
+            if self.state == MOVING:
                 # --------------------- Next Goal ---------------------
-                # Finish condition
+                # Verify if arrived to last goal
                 if p == len(self.path[1][:]):
-                    self.positioning = True
+                    self.state = POSITIONING
                 # Arrived to Next point condition
-                if arrived and (not self.positioning):
+                if arrivedToCurrentGoal:
                     self.currentGoal = [self.path[0][p], self.path[1][p], 0]
                     p = p + 1
                 # --------------------- CONTROL ---------------------
                 # Calculate directions
                 [rho, alpha, beta] = self.calculate_direction()
-                # Verify if arrived to actual goal
-                arrived = (abs(rho) < THRESHOLD_LIN)
                 # V and W calculations
                 [v, w] = self.calculate_velocities(rho, alpha, beta)
-            # If not moving set vel and state to 0
-            else:
-                self.movementState = 0
-                v = 0
-                w = 0
-            # Set vel message
+                # Verify if arrived to actual goal
+                arrivedToCurrentGoal = (abs(rho) < THRESHOLD_LIN)
+
+            # Set Messages
             self.vel.linear.x = v
             self.vel.angular.x = w
+            self.movementState = self.state
             # Print vel and state
             print("Vel Linear: " + str(v))
             print("Vel Angular: " + str(w))
@@ -161,6 +171,7 @@ class RobotControl:
             pubState.publish(self.movementState)
 
             rate.sleep()
+
 
 if __name__ == '__main__':
     try:
