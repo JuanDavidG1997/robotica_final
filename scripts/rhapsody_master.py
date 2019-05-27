@@ -5,21 +5,20 @@ import numpy as np
 from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Int32, String
 from master_msgs_iele3338.srv import AckService, EndService, StartService
-#from robotica_final.srv import MoveService, ReadService, PathService
-from robotica_final.srv import *
+from robotica_final.srv import MoveService, ReadService, PathService
 
 # Constants
 GROUP = 15
 IP = "192.168.2.3"
 
 # Possible states
-ACK_SERVICE = "AckService"
-READY_TO_START = "ReadyToStart"
-PATH_PLANNING = "PathPlanning"
-MOVING = "Moving"
-READING_NUMBERS = "ReadingNumbers"
-EMERGENCY_STOP = "EmergencyStop"
-FINISHED_TEST = "FinishedTest"
+ACK_SERVICE = 1
+READY_TO_START = 2
+PATH_PLANNING = 3
+MOVING = 4
+READING_NUMBERS = 5
+EMERGENCY_STOP = 6
+FINISHED_TEST = 7
 
 
 class RhapsodyMaster:
