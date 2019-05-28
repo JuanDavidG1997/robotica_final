@@ -16,6 +16,7 @@ MA1_PIN = 17
 MA2_PIN = 18
 MB1_PIN = 27
 MB2_PIN = 22
+WHEEL_RADIUS = 29.3/2
 ACK_SERVICE = 1
 READY_TO_START = 2
 PATH_PLANNING = 3
@@ -106,8 +107,8 @@ class RhapsodyToolkit():
 
 
 	def calculateLowLevelControl(self):
-		omegaR_setpoint = -6.3
-		omegaL_setpoint = -6.3
+		omegaR_setpoint = self.linear_vel/WHEEL_RADIUS + self.angular_vel
+		omegaL_setpoint = self.linear_vel/WHEEL_RADIUS - self.angular_vel
 
 		self.omegaRError = omegaR_setpoint - self.omegaR_real
 		self.omegaLError = omegaL_setpoint - self.omegaL_real
