@@ -5,7 +5,7 @@ import numpy as np
 from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Int32
 from master_msgs_iele3338.srv import AckService, EndService, StartService
-from robotica_final.srv import MoveService, ReadService, PathService
+from robotica_final.srv import MoveService, ReadService, PathService, EstimationService
 from robotica_final.msg import obs
 
 # Constants
@@ -128,6 +128,19 @@ class RhapsodyMaster:
             return request.correct
         except rospy.ServiceException:
             print("Service call to end service failed")
+
+    def ask_for_estimation_service(self):
+        print('Requesting estimation service')
+        rospy.wait_for_service('start_estimation')
+        try:
+            start_estimation = rospy.ServiceProxy('start_estimation', EstimationService)
+            pose_estimation = Pose()
+            pose_estimation.position.x = self.start.x
+            pose_estimation.position.y = self.start.y
+            pose_estimation.orientation.w = self.start_orientation
+            request = start_estimation(pose_estimation)
+        except rospy.ServiceException:
+            print("Service call to pose estimation failed")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------Additional methods-----------------------------------------------------
