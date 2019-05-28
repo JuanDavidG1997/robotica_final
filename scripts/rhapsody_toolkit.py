@@ -7,6 +7,7 @@ from std_msgs.msg import Int32
 
 
 PWM_FREQUENCY_LED = 255
+AILERON_LED = 32
 RED_LED = 36
 GREEN_LED = 38
 BLUE_LED = 40
@@ -26,11 +27,7 @@ EMERGENCY_STOP_COLOR = [255, 255, 255]
 FINISHED_TEST_COLOR = [255, 255, 255]
 
 
-
-
-
-
-class RhapsodyToolkit():
+class RhapsodyToolkit:
 
 	"""docstring for RhapsodyToolkit"""
 	def __init__(self):
@@ -46,6 +43,7 @@ class RhapsodyToolkit():
 		self.r_color = 0
 		self.g_color = 0
 		self.b_color = 0
+		self.p_color = 0
 
 		# GPIO Pins config
 		GPIO.setmode(GPIO.BCM)
@@ -61,6 +59,7 @@ class RhapsodyToolkit():
 		GPIO.setup(RED_LED, GPIO.OUT)
 		GPIO.setup(GREEN_LED, GPIO.OUT)
 		GPIO.setup(BLUE_LED, GPIO.OUT)
+		GPIO.setup.(AILERON_LED, GPIO.OUT)
 
 		# PWM objects
 		self.MA1 = GPIO.PWM(11, 500)
@@ -72,6 +71,7 @@ class RhapsodyToolkit():
 		self.red = GPIO.PWM(RED_LED, PWM_FREQUENCY_LED)
 		self.green = GPIO.PWM(GREEN_LED, PWM_FREQUENCY_LED)
 		self.blue = GPIO.PWM(BLUE_LED, PWM_FREQUENCY_LED)
+		self.purple = GPIO.PWM(AILERON_LED, PWM_FREQUENCY_LED)
 
 		# Motor PWM objects init
 		self.MA1.start(0)
@@ -83,24 +83,21 @@ class RhapsodyToolkit():
 		self.red.start(255)
 		self.green.start(255)
 		self.blue.start(255)
-
+		self.purple(255)
 
 	def speedCallback(self, motorData):
 		self.linear_vel = motorData.linear.x
 		self.angular_vel = motorData.angular.x
 
-
 	def setSpeed(self):
 		self.MA1.ChangeDutyCycle(self.linear_vel - self.angular_vel)
 		self.MB1.ChangeDutyCycle(self.linear_vel + self.angular_vel)
 
-
 	def state_callback(self, data):
 		self.state = data
 
-
 	def color_definition(self):
-		#Check actual state
+		# Check actual state
 		if self.state == ACK_SERVICE:
 			self.r_color = ACK_SERVICE_COLOR[0]
 			self.g_color = ACK_SERVICE_COLOR[1]
@@ -120,6 +117,7 @@ class RhapsodyToolkit():
 			self.r_color = MOVING_COLOR[0]
 			self.g_color = MOVING_COLOR[1]
 			self.b_color = MOVING_COLOR[2]
+			self.p_color = 255
 
 		elif self.state == READING_NUMBERS:
 			self.r_color = READING_NUMBERS_COLOR[0]
@@ -140,6 +138,7 @@ class RhapsodyToolkit():
 		self.red.ChangeDutyCycle(self.r_color)
 		self.green.ChangeDutyCycle(self.g_color)
 		self.blue.ChangeDutyCycle(self.b_color)
+		self.purple.ChangeDutyCycle(self.p_color)
 
 	def main(self):
 		
@@ -163,10 +162,3 @@ if __name__ == '__main__':
 		master.main()
 	except rospy.ROSInterruptException:
 		pass
-
-
-		
-
-
-
-
