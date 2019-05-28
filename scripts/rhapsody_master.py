@@ -174,6 +174,7 @@ class RhapsodyMaster:
             # Ready to start. ACK_SERVICE
             while not ready_to_start:
                 ready_to_start = self.ask_for_ack_service()
+                self.ask_for_estimation_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
             # Received Start_Service

@@ -8,8 +8,8 @@ from robotica_final.msg import realVel
 import numpy as np
 
 
-AILERON_LED = 32
 PWM_FREQUENCY_LED = 100
+AILERON_LED = 12
 RED_LED = 16
 GREEN_LED = 20
 BLUE_LED = 21

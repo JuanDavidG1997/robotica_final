@@ -2,8 +2,8 @@
 
 import rospy
 import math as m
-from geometry_msgs.msg import Pose, Point, Twist
-from std_msgs.msg import Int16, String
+from geometry_msgs.msg import Pose, Twist
+from std_msgs.msg import Int16
 from robotica_final.srv import *
 
 # Threshold
