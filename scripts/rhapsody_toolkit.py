@@ -52,7 +52,7 @@ class RhapsodyToolkit():
 		self.omegaLError = 0.0
 		self.omegaRIntegralError = 0.0
 		self.omegaLIntegralError = 0.0
-		self.lastTimeLowLevel = rospy.get_time()
+		self.lastTimeLowLevel = 0.0
 
 		# State variable
 		self.state = ACK_SERVICE
@@ -196,6 +196,7 @@ class RhapsodyToolkit():
 		
 		# Node init
 		rospy.init_node('rhapsody_toolkit', anonymous=False)
+		self.lastTimeLowLevel = rospy.get_time()
 		
 		# Topic Subscription
 		rospy.Subscriber('state', Int32, self.state_callback)
