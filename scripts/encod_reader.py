@@ -63,7 +63,7 @@ class encodReader:
         # Node init
         rospy.init_node('encod_reader', anonymous=False)
         # Topic publisher
-        pubVel = rospy.Publisher('real_velocity', realVel, queue_size=10)
+        pubVel = rospy.Publisher('real_vel', realVel, queue_size=10)
         # Frequency rate
         rate = rospy.Rate(20)
         # --------------------- Local variables ---------------------
