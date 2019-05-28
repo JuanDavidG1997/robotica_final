@@ -6,6 +6,7 @@ from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Int32
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 from robotica_final.srv import MoveService, ReadService, PathService
+from robotica_final.msg import obs
 
 # Constants
 GROUP = 15
@@ -24,7 +25,7 @@ FINISHED_TEST = 7
 class RhapsodyMaster:
 
     def __init__(self):
-        self.actual_state = ""
+        self.actual_state = 0
         self.start = None
         self.goal = None
         self.n_obstacles = None
@@ -35,6 +36,8 @@ class RhapsodyMaster:
         self.y_position = 0
         self.password = 0
         self.request_path = False
+        self.start_orientation = 0
+        self.goal_orientation = 0
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------Topic Callbacks--------------------------------------------------------
@@ -49,8 +52,10 @@ class RhapsodyMaster:
 # -----------------------------------------------Service handler--------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
     def handle_start_service(self, data):
-        self.start = data.start
-        self.goal = data.goal
+        self.start = (data.start.position.x, data.start.position.y)
+        self.start_orientation = data.start.orientation.w
+        self.goal = (data.goal.position.x, data.goal.position.y)
+        self.goal_orientation = data.goal.orientation.w
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles
         self.request_path = True
@@ -61,10 +66,12 @@ class RhapsodyMaster:
 
     def ask_for_ack_service(self):
         print("Requesting ack_service...")
-        rospy.wait_for_service('ack_service')
+        # rospy.wait_for_service('ack_service')
         try:
+            print("Trying request")
             ack = rospy.ServiceProxy('ack_service', AckService)
             request = ack(GROUP, IP)
+            print(request)
             return request.state
         except rospy.ServiceException:
             print("Service call to ack_service failed")
@@ -72,19 +79,21 @@ class RhapsodyMaster:
     def ask_for_path(self):
         print("Requesting path_planning...")
         self.change_state(PATH_PLANNING)
-        x = self.x_position
-        y = self.y_position
-        algorithm = "Astar"
-        obstacle_list = np.zeros((5, 3))
+        x_start = self.start[0]
+        y_start = self.start[1]
+        x_goal = self.goal[0]
+        y_goal = self.goal[1]
+        algorithm = 'RRT'
+        obstacle_list = []
+        print(self.n_obstacles)
         for i in range(0, self.n_obstacles):
             obstacle = self.obstacles[i]
-            obstacle_list[i, 0] = obstacle.position.position.x
-            obstacle_list[i, 1] = obstacle.position.position.y
-            obstacle_list[i, 2] = obstacle.radius
+            obstacle_append = obs(obstacle.position.position.x, obstacle.position.position.y, obstacle.radius)
+            obstacle_list.append(obstacle_append)
         rospy.wait_for_service('path_planning')
         try:
             path = rospy.ServiceProxy('path_planning', PathService)
-            request = path(x, y, obstacle_list, algorithm)
+            request = path(x_start, y_start, x_goal, y_goal, obstacle_list, algorithm)
             return request
         except rospy.ServiceException:
             print("Service call to path_planner failed")
@@ -168,7 +177,6 @@ class RhapsodyMaster:
             # FINISHED_TEST
             if correct_password == 1:
                 self.change_state(FINISHED_TEST)
-
             rate.sleep()
 
 

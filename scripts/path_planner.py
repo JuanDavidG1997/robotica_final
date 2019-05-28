@@ -17,19 +17,24 @@ class PathPlanner:
         self.x_pos = 0
         self.y_pos = 0
 
-    # Callback that updates the position of the pioneerRobot
-    def pioneer_position_callback(self, data):
-        self.x_pos = data.linear.x
-        self.y_pos = data.linear.y
-
     # Service Callback
     # Returns the path according to goal and algorithm
     def path_planning(self, dict):
-        goal = (dict.x, dict.y)
+        self.x_pos = dict.x_start
+        self.y_pos = dict.y_start
+        goal = (dict.x_goal, dict.y_goal)
+        obstacle_list_srv = dict.obstacle_list
         algorithm = dict.algorithm
         pathx = None
         pathy = None
-        self.obstacle_list = dict.obstacle_list
+        n_obstacles = len(obstacle_list_srv)
+        obstacle_list = np.zeros((n_obstacles, 3))
+        for i in range(0, n_obstacles):
+            obstacle = obstacle_list_srv[i]
+            obstacle_list[i, 0] = obstacle.x
+            obstacle_list[i, 1] = obstacle.y
+            obstacle_list[i, 2] = obstacle.r
+        self.obstacle_list = obstacle_list
         # Calls the method according to the requested algorithm
         if algorithm == 'RRT':
             pathx, pathy = self.rrt_planning(goal)
@@ -62,9 +67,10 @@ class PathPlanner:
     def a_star_path_planning(self, goal):
         print("Astar requested. Goal is: " + str(goal))
         # Graph creation
-        G = graph_building(self.obstacle_list)
+        G = Graph()
+        G = G.graph_building(self.obstacle_list)
         # Rounding goal and start to known nodes
-        distORigin = [m.sqrt((xy[0] - x_pos) ** 2 + (xy[1] - y_pos) ** 2) for xy in G.nodes()]
+        distORigin = [m.sqrt((xy[0] - self.x_pos) ** 2 + (xy[1] - self.y_pos) ** 2) for xy in G.nodes()]
         distGoal = [m.sqrt((xy[0] - goal[0]) ** 2 + (xy[1] - goal[1]) ** 2) for xy in G.nodes()]
         nodeOrigin = np.argmin(distORigin)
         nodeGoal = np.argmin(distGoal)
@@ -93,3 +99,12 @@ class PathPlanner:
         # Service proxy declaration
         path = rospy.Service('path_planning', PathService, self.path_planning)
         rospy.spin()
+        pass
+
+
+if __name__ == '__main__':
+    try:
+        master = PathPlanner()
+        master.main()
+    except rospy.ROSInterruptException:
+        pass

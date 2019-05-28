@@ -1,7 +1,9 @@
-float32 x
-float32 y
+float32 x_start
+float32 y_start
+float32 x_goal
+float32 y_goal
+obs[] obstacle_list
 string algorithm
-int32 obstacle_list
 ---
 float64[] pathx
 float64[] pathy
