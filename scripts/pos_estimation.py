@@ -4,7 +4,7 @@ import rospy
 import math as m
 import numpy as np
 from geometry_msgs.msg import Pose, Point, Twist
-from std_msgs.msg import String, float32MultiArray
+from std_msgs.msg import String, Float32MultiArray
 from robotica_final.srv import *
 from master_msgs_iele3338.msg import Covariance
 
@@ -40,7 +40,7 @@ class posEstimator:
         # Node init
         rospy.init_node('pos_estimation', anonymous=False)
         # Topic subscriber
-        rospy.Subscriber('real_vel', float32MultiArray, self.real_vel_callback)
+        rospy.Subscriber('real_vel', Float32MultiArray, self.real_vel_callback)
         # Topic publisher
         pubUncertainty = rospy.Publisher('robot_uncertainty', Covariance, queue_size=10)
         pubPos = rospy.Publisher('robot_position', Pose, queue_size=10)
@@ -93,7 +93,27 @@ class posEstimator:
             prevTime = actualTime
 
             # --------------------- Estimate Covariance ---------------------
+            # Intermediate terms
             Fp = np.matrix([[1.0, 0.0, -deltaS*m.sin(theta + deltaTheta/2)],[0.0, 1.0, -deltaS*m.cos(theta + deltaTheta/2)],[0.0, 0.0, 1.0]])
+            ang = theta + deltaTheta/2
+            fila1 = [0.5*m.cos(ang) - (deltaS/(4*L))*m.sin(ang), 0.5*m.cos(ang) + (deltaS/(4*L))*m.sin(ang)]
+            fila2 = [0.5*m.sin(ang) + (deltaS/(4*L))*m.cos(ang), 0.5*m.sin(ang) - (deltaS/(4*L))*m.cos(ang)]
+            fila3 = [1/(2*L), 1/(2*L)]
+            FdS = np.matrix([fila1,fila2,fila3])
+            sigmadS = np.matrix([[0.1*deltaSR, 0.0 ],[0.0, 0.1*deltaSL]])
+            # Build Covariance
+            self.sigmaP = Fp*self.sigmaP*np.transpose(Fp) + FdS*sigmadS*np.transpose(FdS)
+            # Build and publish message
+            self.estimatedUncertainty.sigma11 = self.sigmaP[0][0]
+            self.estimatedUncertainty.sigma12 = self.sigmaP[0][1]
+            self.estimatedUncertainty.sigma13 = self.sigmaP[0][2]
+            self.estimatedUncertainty.sigma21 = self.sigmaP[1][0]
+            self.estimatedUncertainty.sigma22 = self.sigmaP[1][1]
+            self.estimatedUncertainty.sigma23 = self.sigmaP[1][2]
+            self.estimatedUncertainty.sigma31 = self.sigmaP[2][0]
+            self.estimatedUncertainty.sigma32 = self.sigmaP[2][1]
+            self.estimatedUncertainty.sigma33 = self.sigmaP[2][2]
+            pubUncertainty.publish(self.estimatedUncertainty)
 
             rate.sleep()
 
