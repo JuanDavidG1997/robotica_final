@@ -6,20 +6,20 @@ GPIO.setmode(GPIO.BCM)
 from robotica_final.msg import realVel
 
 # Constantes para los GPIO
-LEFT_CHANNEL_A = 23
-LEFT_CHANNEL_B = 24
-RIGHT_CHANNEL_A = 21
-RIGHT_CHANNEL_B = 12
+LEFT_CHANNEL_A = 5
+LEFT_CHANNEL_B = 6
+RIGHT_CHANNEL_A = 19
+RIGHT_CHANNEL_B = 13
 # Constante de cuentas
-COUNT_CTE = 1200
+COUNT_CTE = 1000.0
 
 
 class encodReader:
 
     def __init__(self):
         # Counts
-        self.leftEncoderCounts = 0
-        self.rightEncoderCounts = 0
+        self.leftEncoderCounts = 0.0
+        self.rightEncoderCounts = 0.0
         # Inicializacion de los GPIO: Entrada y con pull-up
         GPIO.setup(LEFT_CHANNEL_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(LEFT_CHANNEL_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -65,32 +65,34 @@ class encodReader:
         # Topic publisher
         pubVel = rospy.Publisher('real_velocity', realVel, queue_size=10)
         # Frequency rate
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(20)
         # --------------------- Local variables ---------------------
-        prevTime = 0
-        prevRrad = 0
-        prevLrad = 0
+        prevTime = 0.0
+        prevRrad = 0.0
+        prevLrad = 0.0
 
-        actualTime = 0
-        actualRrad = 0
-        actualLVrad = 0
+        actualTime = 0.0
+        actualRrad = 0.0
+        actualLVrad = 0.0
         while not rospy.is_shutdown():
             # Calculate actual rad and time
             actualRrad = (self.rightEncoderCounts/COUNT_CTE)*2*m.pi
             actualLrad = (self.leftEncoderCounts/COUNT_CTE)*2*m.pi
-            actualTime = rospy.time
-            print('Cuentas Izquierda: {} \t Cuentas Derecha: {}'.format(self.leftEncoderCounts, self.rightEncoderCounts))
+            actualTime = rospy.get_time()
+            #print('Cuentas Izquierda: {} \t Cuentas Derecha: {}'.format(self.leftEncoderCounts, self.rightEncoderCounts))
             # Calculate velocities
             self.vel.right = (actualRrad - prevRrad)/ (actualTime - prevTime)
             self.vel.left = (actualLrad - prevLrad) / (actualTime - prevTime)
-            self.vel.time = rospy.time
+            self.vel.time = actualTime
             # Publish  Message
             pubVel.publish(self.vel)
-            print(self.vel)
+
             # Update variables
             prevRrad = actualRrad
             prevLrad = actualLrad
             prevTime = actualTime
+
+            #print('vel left: {} \t vel right: {} \t time: {}'.format(self.vel.left, self.vel.right, self.vel.time))
             # sleep
             rate.sleep()
 
