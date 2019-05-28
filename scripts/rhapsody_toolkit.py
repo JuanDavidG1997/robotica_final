@@ -76,9 +76,9 @@ class RhapsodyToolkit():
 		self.MB2.start(0)
 
 		# Starting pins
-		self.red.start(255)
-		self.green.start(255)
-		self.blue.start(255)
+		self.red.start(100)
+		self.green.start(100)
+		self.blue.start(100)
 
 
 	def speedCallback(self, motorData):
