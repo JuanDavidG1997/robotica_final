@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy as np
-from geometry_msgs.msg import Pose, Point
+from geometry_msgs.msg import Pose, Point, Twist
 from std_msgs.msg import Int32
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 from robotica_final.srv import MoveService, ReadService, PathService, EstimationService
@@ -85,7 +84,6 @@ class RhapsodyMaster:
         y_goal = self.goal[1]
         algorithm = 'RRT'
         obstacle_list = []
-        print(self.n_obstacles)
         for i in range(0, self.n_obstacles):
             obstacle = self.obstacles[i]
             obstacle_append = obs(obstacle.position.position.x, obstacle.position.position.y, obstacle.radius)
@@ -100,13 +98,22 @@ class RhapsodyMaster:
 
     def ask_for_move(self, path):
         print("Requesting movement...")
-        self.change_state(MOVING)
+        k = 0
+        while k < 1000000:
+            msg = Twist()
+            msg.linear.x = 1
+            msg.angular.x = 1
+            self.cmd_vel.publish(msg)
+            self.change_state(MOVING)
+            k = k + 1
         rospy.wait_for_service('move')
         try:
             move = rospy.ServiceProxy('move', MoveService)
             request = move(path, self.goal_orientation)
+
         except rospy.ServiceException:
             print("Service call to move failed")
+
 
     def ask_for_read(self):
         print("Requesting number reading...")
@@ -163,6 +170,7 @@ class RhapsodyMaster:
         rospy.Subscriber('mov_state', Int32, self.mov_state_callback)
         # Topic publisher
         state_publisher = rospy.Publisher('state', Int32, queue_size=10)
+        self.cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         # Local variables
         ready_to_start = False
         correct_password = 0
