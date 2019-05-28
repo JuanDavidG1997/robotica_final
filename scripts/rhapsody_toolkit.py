@@ -8,9 +8,9 @@ from std_msgs.msg import Int32
 
 AILERON_LED = 32
 PWM_FREQUENCY_LED = 100
-RED_LED = 36
-GREEN_LED = 38
-BLUE_LED = 40
+RED_LED = 16
+GREEN_LED = 20
+BLUE_LED = 21
 ACK_SERVICE = 1
 READY_TO_START = 2
 PATH_PLANNING = 3
@@ -37,7 +37,7 @@ class RhapsodyToolkit:
 		self.angular_vel = 0.0
 
 		# State variable
-		self.state = None
+		self.state = ACK_SERVICE
 
 		# Color variable start
 		self.r_color = 0
@@ -47,13 +47,13 @@ class RhapsodyToolkit:
 
 		# GPIO Pins config
 		GPIO.setmode(GPIO.BCM)
-		GPIO.setwarnings(False)
+		#GPIO.setwarnings(False)
 
 		# Motors pin setup
-		GPIO.setup(11, GPIO.OUT)
-		GPIO.setup(12, GPIO.OUT)
-		GPIO.setup(13, GPIO.OUT)
-		GPIO.setup(15, GPIO.OUT)
+		GPIO.setup(17, GPIO.OUT)
+		GPIO.setup(18, GPIO.OUT)
+		GPIO.setup(27, GPIO.OUT)
+		GPIO.setup(22, GPIO.OUT)
 
 		# LED output definition
 		GPIO.setup(RED_LED, GPIO.OUT)
@@ -62,10 +62,10 @@ class RhapsodyToolkit:
 		GPIO.setup.(AILERON_LED, GPIO.OUT)
 
 		# PWM objects
-		self.MA1 = GPIO.PWM(11, 500)
-		self.MA2 = GPIO.PWM(12, 500)
-		self.MB1 = GPIO.PWM(13, 500)
-		self.MB2 = GPIO.PWM(15, 500)
+		self.MA1 = GPIO.PWM(17, 500)
+		self.MA2 = GPIO.PWM(18, 500)
+		self.MB1 = GPIO.PWM(27, 500)
+		self.MB2 = GPIO.PWM(22, 500)
 
 		# Frequency definition
 		self.red = GPIO.PWM(RED_LED, PWM_FREQUENCY_LED)
