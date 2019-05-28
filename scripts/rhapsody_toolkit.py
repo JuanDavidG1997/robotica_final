@@ -42,8 +42,8 @@ class RhapsodyToolkit():
 		self.angular_vel = 0.0
 
 		# Motor angular velocity
-		self.self.omegaL_real = 0.0
-		self.self.omegaR_real = 0.0
+		self.omegaL_real = 0.0
+		self.omegaR_real = 0.0
 
 		# PI controller variables
 		self.KP = 1.0
