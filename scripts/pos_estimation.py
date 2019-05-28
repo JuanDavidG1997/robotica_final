@@ -101,9 +101,9 @@ class posEstimator:
             ang = theta + deltaTheta/2
             fila1 = [0.5*m.cos(ang) - (deltaS/(4*L))*m.sin(ang), 0.5*m.cos(ang) + (deltaS/(4*L))*m.sin(ang)]
             fila2 = [0.5*m.sin(ang) + (deltaS/(4*L))*m.cos(ang), 0.5*m.sin(ang) - (deltaS/(4*L))*m.cos(ang)]
-            fila3 = [1/(2*L), 1/(2*L)]
+            fila3 = [1/(2*L), -1/(2*L)]
             FdS = np.matrix([fila1,fila2,fila3])
-            sigmadS = np.matrix([[0.1*deltaSR, 0.0 ],[0.0, 0.1*deltaSL]])
+            sigmadS = np.matrix([[0.1*np.abs(deltaSR), 0.0 ],[0.0, 0.1*np.abs(deltaSL)]])
             # Build Covariance
             self.sigmaP = Fp*self.sigmaP*np.transpose(Fp) + FdS*sigmadS*np.transpose(FdS)
 
@@ -117,7 +117,7 @@ class posEstimator:
             self.estimatedUncertainty.sigma31 = self.sigmaP[2,0]
             self.estimatedUncertainty.sigma32 = self.sigmaP[2,1]
             self.estimatedUncertainty.sigma33 = self.sigmaP[2,2]
-            #pubUncertainty.publish(self.estimatedUncertainty)
+            pubUncertainty.publish(self.estimatedUncertainty)
 
             rate.sleep()
 
