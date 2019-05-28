@@ -120,7 +120,7 @@ class RhapsodyMaster:
             print("Service call to read failed")
 
     def ask_for_end_service(self):
-        print("Requesting end service")
+        print("Requesting end service...")
         rospy.wait_for_service('end_service')
         try:
             end_service = rospy.ServiceProxy('end_service', EndService)
@@ -130,7 +130,7 @@ class RhapsodyMaster:
             print("Service call to end service failed")
 
     def ask_for_estimation_service(self):
-        print('Requesting estimation service')
+        print('Requesting estimation service...')
         rospy.wait_for_service('start_estimation')
         try:
             start_estimation = rospy.ServiceProxy('start_estimation', EstimationService)
@@ -174,9 +174,9 @@ class RhapsodyMaster:
             # Ready to start. ACK_SERVICE
             while not ready_to_start:
                 ready_to_start = self.ask_for_ack_service()
-                self.ask_for_estimation_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
+            #self.ask_for_estimation_service()
             # Received Start_Service
             # Asking for path. PATH_SERVICE
             if self.request_path:
@@ -191,6 +191,7 @@ class RhapsodyMaster:
             # FINISHED_TEST
             if correct_password == 1:
                 self.change_state(FINISHED_TEST)
+                print("Ended test")
             rate.sleep()
 
 

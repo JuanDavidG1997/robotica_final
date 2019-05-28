@@ -8,6 +8,7 @@ from robotica_final.msg import realVel
 import numpy as np
 
 
+BLINKING_FREQUENCY = 200
 PWM_FREQUENCY_LED = 100
 AILERON_LED = 12
 RED_LED = 16
@@ -105,11 +106,11 @@ class RhapsodyToolkit:
 		self.blue.start(100)
 		self.purple.start(100)
 
-	def speedCallback(self, motorData):
+	def speed_callback(self, motorData):
 		self.linear_vel = motorData.linear.x
 		self.angular_vel = motorData.angular.x
 
-	def calculateLowLevelControl(self):
+	def calculate_low_level_control(self):
 		omegaR_setpoint = self.linear_vel/WHEEL_RADIUS + self.angular_vel
 		omegaL_setpoint = self.linear_vel/WHEEL_RADIUS - self.angular_vel
 
@@ -131,7 +132,6 @@ class RhapsodyToolkit:
 			self.MB2.ChangeDutyCycle(0)
 			self.MB1.ChangeDutyCycle(int(omegaRControlAction))
 
-
 		if omegaLControlAction>0:
 			self.MA1.ChangeDutyCycle(0)
 			self.MA2.ChangeDutyCycle(int(omegaLControlAction))
@@ -140,7 +140,6 @@ class RhapsodyToolkit:
 			self.MA1.ChangeDutyCycle(-int(omegaLControlAction))
 
 		print(self.omegaL_real, self.omegaR_real)
-
 
 	def realVelCallback(self, velData):
 		self.omegaR_real = velData.right
@@ -170,7 +169,6 @@ class RhapsodyToolkit:
 			self.r_color = MOVING_COLOR[0]
 			self.g_color = MOVING_COLOR[1]
 			self.b_color = MOVING_COLOR[2]
-			self.p_color = 255
 
 		elif self.state == READING_NUMBERS:
 			self.r_color = READING_NUMBERS_COLOR[0]
@@ -191,7 +189,19 @@ class RhapsodyToolkit:
 		self.red.ChangeDutyCycle(self.r_color/255*100)
 		self.green.ChangeDutyCycle(self.g_color/255*100)
 		self.blue.ChangeDutyCycle(self.b_color/255*100)
-		self.purple.ChangeDutyCycle(self.p_color/255*100)
+
+	def aileron_led(self, pwm):
+
+		if self.state == MOVING:
+			self.p_color = pwm
+
+		elif self.state == FINISHED_TEST:
+			self.p_color = pwm
+
+		else:
+			self.p_color = 0
+
+		self.purple.ChangeDutyCycle(self.p_color / 255 * 100)
 
 	def main(self):
 		
@@ -204,9 +214,19 @@ class RhapsodyToolkit:
 		rospy.Subscriber('cmd_vel', Twist, self.speedCallback)
 		rospy.Subscriber('real_vel', realVel, self.realVelCallback)
 		rate = rospy.Rate(10)
+		counter = 0
+		pwm = 0
 		
 		while not rospy.is_shutdown():
 			self.color_definition()
+			if counter > BLINKING_FREQUENCY:
+				counter = 0
+				if pwm == 0:
+					pwm = 255
+				else:
+					pwm = 0
+			counter = counter + 1
+			self.aileron_led(pwm)
 			self.calculateLowLevelControl()
 			rate.sleep()
 
