@@ -14,6 +14,7 @@ class RhapsodyToolkit():
 		rospy.Subscriber("motor_vel", Twist, speedCallback)
 
 		rospy.spin()
+		
 
 	def speedCallback(motorData):
 
