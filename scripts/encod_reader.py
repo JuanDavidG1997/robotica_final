@@ -79,6 +79,7 @@ class encodReader:
             actualRrad = (self.rightEncoderCounts/COUNT_CTE)*2*m.pi
             actualLrad = (self.leftEncoderCounts/COUNT_CTE)*2*m.pi
             actualTime = rospy.time
+            print('Cuentas Izquierda: {} \t Cuentas Derecha: {}'.format(self.leftEncoderCounts, self.rightEncoderCounts))
             # Calculate velocities
             self.vel.right = (actualRrad - prevRrad)/ (actualTime - prevTime)
             self.vel.left = (actualLrad - prevLrad) / (actualTime - prevTime)

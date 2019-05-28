@@ -6,8 +6,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32
 
 
-PWM_FREQUENCY_LED = 255
 AILERON_LED = 32
+PWM_FREQUENCY_LED = 100
 RED_LED = 36
 GREEN_LED = 38
 BLUE_LED = 40
@@ -80,10 +80,10 @@ class RhapsodyToolkit:
 		self.MB2.start(0)
 
 		# Starting pins
-		self.red.start(255)
-		self.green.start(255)
-		self.blue.start(255)
-		self.purple(255)
+		self.red.start(100)
+		self.green.start(100)
+		self.blue.start(100)
+		self.purple.start(100)
 
 	def speedCallback(self, motorData):
 		self.linear_vel = motorData.linear.x
@@ -135,10 +135,10 @@ class RhapsodyToolkit:
 			self.b_color = FINISHED_TEST_COLOR[2]
 
 		# PWM generation
-		self.red.ChangeDutyCycle(self.r_color)
-		self.green.ChangeDutyCycle(self.g_color)
-		self.blue.ChangeDutyCycle(self.b_color)
-		self.purple.ChangeDutyCycle(self.p_color)
+		self.red.ChangeDutyCycle(self.r_color/255*100)
+		self.green.ChangeDutyCycle(self.g_color/255*100)
+		self.blue.ChangeDutyCycle(self.b_color/255*100)
+		self.purple.ChangeDutyCycle(self.p_color/255*100)
 
 	def main(self):
 		
