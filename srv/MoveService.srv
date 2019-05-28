@@ -1,4 +1,5 @@
 float64[] pathx
 float64[] pathy
+float64 w
 ---
 

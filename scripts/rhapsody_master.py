@@ -104,7 +104,7 @@ class RhapsodyMaster:
         rospy.wait_for_service('move')
         try:
             move = rospy.ServiceProxy('move', MoveService)
-            request = move(path)
+            request = move(path, self.goal_orientation)
         except rospy.ServiceException:
             print("Service call to move failed")
 
@@ -114,8 +114,8 @@ class RhapsodyMaster:
         rospy.wait_for_service('read')
         try:
             read = rospy.ServiceProxy('read', ReadService)
-            request = read(image)
-            return request.data
+            request = read()
+            return request.data.password
         except rospy.ServiceException:
             print("Service call to read failed")
 
@@ -170,7 +170,7 @@ class RhapsodyMaster:
                 # Asking for movement. ASK_MOVE
                 self.ask_for_move(path)
             # If arrived. ASK_READ
-            if self.mov_state == 2:
+            if self.mov_state == 3:
                 self.password = self.ask_for_read()
                 # Checking received password. ASK_END_SERVICE
                 correct_password = self.ask_for_end_service()
