@@ -8,21 +8,32 @@ from std_msgs.msg import String, float32MultiArray
 from robotica_final.srv import *
 from master_msgs_iele3338.msg import Covariance
 
+# Constantes
+L = 100.0
+radius = 29.3/2
+
 class posEstimator:
 
     def __init__(self):
         # Velocidades
-        self.velLeft = 0.0
-        self.velRight = 0.0
+        self.angularVelLeft = 0.0
+        self.angularVelRight = 0.0
         self.timeStamp = 0.0
         # Pub Messages
-        self.estimatedPos = Pose()
+        self.estimated = Pose()
+        self.actualPos = [0.0, 0.0, 0.0]
+        self.prevPos = [0.0, 0.0, 0.0]
         self.estimatedUncertainty = Covariance()
 
+        self.sigmaP = np.matrix([[0.0, 0.0, 0.0 ],[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]])
+
     def real_vel_callback(self, data):
-        self.velLeft = data.left
-        self.velRight = data.right
+        self.angularVelLeft = data.left
+        self.angularVelRight = data.right
         self.timeStamp = data.time
+
+    def handle_estimate_service(self, data):
+        self.actualPos = [data.position.x, data.position.y, data.orientation.w]
 
     def main(self):
         # --------------------------- ROS ---------------------------
@@ -33,31 +44,58 @@ class posEstimator:
         # Topic publisher
         pubUncertainty = rospy.Publisher('robot_uncertainty', Covariance, queue_size=10)
         pubPos = rospy.Publisher('robot_position', Pose, queue_size=10)
+        # Service provider
+        estimate = rospy.Service('start_estimation', EstimationService, self.handle_estimate_service)
         # Frequency rate
         rate = rospy.Rate(10)
         # --------------------- Local variables ---------------------
-        xPos = 0.0
-        yPos = 0.0
+        # Pos estimation
+        prevVelR = 0.0
+        prevVelL = 0.0
+        prevTime = 0.0
+        actualVelR = 0.0
+        actualVelL = 0.0
+        actualTime = 0.0
+        # Covariance estimation
+        Fp = np.matrix([[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]])
+        FdS = np.matrix([[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]])
+        sigmadS = np.matrix([[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]])
 
         # Local while cycle
         while not rospy.is_shutdown():
-            l = 20
-            r_theta = np.array([[m.cos(theta), m.sin(theta), 0], [-1 * m.sin(theta), m.cos(theta), 0], [0, 0, 1]])
-            alpha1 = m.pi / 2
-            beta1 = 0
-            alpha2 = -m.pi / 2
-            beta2 = m.pi
-            J1 = np.array([[m.sin(alpha1 + beta1), -1 * m.cos(alpha1 + beta1), -1 * l * m.cos(beta1)],
-                           [m.sin(alpha2 + beta2), -1 * m.cos(alpha2 + beta2), -1 * l * m.cos(beta2)],
-                           [m.cos(alpha1 + beta1), m.sin(alpha1 + beta1), l * m.sin(beta1)]])
-            phi = np.array([v1, v2, 0])
-            phi.shape = (3, 1)
-            global_vel = np.matmul(inv(r_theta), np.matmul(inv(J1), phi))
-            theoretical_x = (x_theoretical_position[-1] + global_vel[0] * time)
-            theoretical_y = (y_theoretical_position[-1] + global_vel[1] * time)
-            x_theoretical_position.append(theoretical_x)
-            y_theoretical_position.append(theoretical_y)
+            # --------------------- Estimate Position ---------------------
+            # Set actual Vel
+            actualVelL = self.angularVelLeft*radius
+            actualVelR = self.angularVelRight*radius
+            actualTime = self.timeStamp
 
+            # Calculate delta for each wheel
+            deltaSL = (actualVelL - prevVelL)/(actualTime - prevTime)
+            deltaSR = (actualVelR - prevVelR)/(actualTime - prevTime)
+            # Calculate local delta
+            deltaTheta = (deltaSR - deltaSL)/(2*L)
+            deltaS = (deltaSL + deltaSR)/2
+
+            # Update Pos
+            theta = self.actualPos[2]
+            self.actualPos[0] += deltaS * m.cos(theta + deltaTheta/2)
+            self.actualPos[1] += deltaS * m.sin(theta + deltaTheta/2)
+            self.actualPos[2] += deltaTheta
+            # Build and publish message
+            self.estimated.position.x = self.actualPos[0]
+            self.estimated.position.y = self.actualPos[1]
+            self.estimated.orientation.w = self.actualPos[2]
+            pubPos.publish(self.estimated)
+
+            # Update prev variables
+            prevVelL = actualVelL
+            prevVelR = actualVelR
+            prevTime = actualTime
+
+            # --------------------- Estimate Covariance ---------------------
+            Fp = np.matrix([[1.0, 0.0, -deltaS*m.sin(theta + deltaTheta/2)],[0.0, 1.0, -deltaS*m.cos(theta + deltaTheta/2)],[0.0, 0.0, 1.0]])
+
+            rate.sleep()
 
 
 if __name__ == '__main__':
