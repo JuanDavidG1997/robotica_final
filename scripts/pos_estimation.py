@@ -94,6 +94,14 @@ class posEstimator:
 
             # --------------------- Estimate Covariance ---------------------
             Fp = np.matrix([[1.0, 0.0, -deltaS*m.sin(theta + deltaTheta/2)],[0.0, 1.0, -deltaS*m.cos(theta + deltaTheta/2)],[0.0, 0.0, 1.0]])
+            ang = theta + deltaTheta/2
+            fila1 = [0.5*m.cos(ang) - (deltaS/(4*L))*m.sin(ang), 0.5*m.cos(ang) + (deltaS/(4*L))*m.sin(ang)]
+            fila2 = [0.5*m.sin(ang) + (deltaS/(4*L))*m.cos(ang), 0.5*m.sin(ang) - (deltaS/(4*L))*m.cos(ang)]
+            fila3 = [1/(2*L), 1/(2*L)]
+            FdS = np.matrix([fila1,fila2,fila3])
+            sigmadS = np.matrix([[0.1*deltaSR, 0.0 ],[0.0, 0.1*deltaSL]])
+
+            self.estimatedUncertainty.sigma11 =
 
             rate.sleep()
 
