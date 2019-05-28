@@ -4,12 +4,18 @@ import rospy
 import RPi.GPIO as GPIO
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int32
+from robotica_final.msg import realVel
+import numpy as np
 
 
 PWM_FREQUENCY_LED = 100
 RED_LED = 16
 GREEN_LED = 20
 BLUE_LED = 21
+MA1_PIN = 17
+MA2_PIN = 18
+MB1_PIN = 27
+MB2_PIN = 22
 ACK_SERVICE = 1
 READY_TO_START = 2
 PATH_PLANNING = 3
@@ -35,6 +41,19 @@ class RhapsodyToolkit():
 		self.linear_vel = 0.0
 		self.angular_vel = 0.0
 
+		# Motor angular velocity
+		self.self.omegaL_real = 0.0
+		self.self.omegaR_real = 0.0
+
+		# PI controller variables
+		self.KP = 1.0
+		self.KI = 2.0
+		self.omegaRError = 0.0
+		self.omegaLError = 0.0
+		self.omegaRIntegralError = 0.0
+		self.omegaLIntegralError = 0.0
+		self.lastTimeLowLevel = rospy.get_time()
+
 		# State variable
 		self.state = ACK_SERVICE
 
@@ -48,10 +67,10 @@ class RhapsodyToolkit():
 		#GPIO.setwarnings(False)
 
 		# Motors pin setup
-		GPIO.setup(17, GPIO.OUT)
-		GPIO.setup(18, GPIO.OUT)
-		GPIO.setup(27, GPIO.OUT)
-		GPIO.setup(22, GPIO.OUT)
+		GPIO.setup(MA1_PIN, GPIO.OUT)
+		GPIO.setup(MA2_PIN, GPIO.OUT)
+		GPIO.setup(MB1_PIN, GPIO.OUT)
+		GPIO.setup(MB2_PIN, GPIO.OUT)
 
 		# LED output definition
 		GPIO.setup(RED_LED, GPIO.OUT)
@@ -59,10 +78,10 @@ class RhapsodyToolkit():
 		GPIO.setup(BLUE_LED, GPIO.OUT)
 
 		# PWM objects
-		self.MA1 = GPIO.PWM(17, 500)
-		self.MA2 = GPIO.PWM(18, 500)
-		self.MB1 = GPIO.PWM(27, 500)
-		self.MB2 = GPIO.PWM(22, 500)
+		self.MA1 = GPIO.PWM(MA1_PIN, 500)
+		self.MA2 = GPIO.PWM(MA2_PIN, 500)
+		self.MB1 = GPIO.PWM(MB1_PIN, 500)
+		self.MB2 = GPIO.PWM(MB2_PIN, 500)
 
 		# Frequency definition
 		self.red = GPIO.PWM(RED_LED, PWM_FREQUENCY_LED)
@@ -86,9 +105,45 @@ class RhapsodyToolkit():
 		self.angular_vel = motorData.angular.x
 
 
-	def setSpeed(self):
-		self.MA1.ChangeDutyCycle(self.linear_vel - self.angular_vel)
-		self.MB1.ChangeDutyCycle(self.linear_vel + self.angular_vel)
+	def calculateLowLevelControl(self):
+		omegaR_setpoint = 1
+		omegaL_setpoint = 1
+
+		self.omegaRError = omegaR_setpoint - self.omegaR_real
+		self.omegaLError = omegaL_setpoint - self.omegaL_real
+		
+		self.omegaRIntegralError += self.omegaRError*(rospy.get_time() - self.lastTimeLowLevel)
+		self.omegaLIntegralError += self.omegaLError*(rospy.get_time() - self.lastTimeLowLevel)
+
+		self.lastTimeLowLevel = rospy.get_time()
+
+
+		omegaRControlAction = np.clip(self.KP * self.omegaRError + self.KI * self.omegaRIntegralError, -100, 100)
+		omegaLControlAction = np.clip(self.KP * self.omegaLError + self.KI * self.omegaLIntegralError, -100, 100)
+
+		if omegaRControlAction>0:
+			self.MA1.ChangeDutyCycle(0)
+			self.MA2.ChangeDutyCycle(int(omegaRControlAction))
+		else:
+			self.MA2.ChangeDutyCycle(0)
+			self.MA1.ChangeDutyCycle(int(omegaRControlAction))
+
+
+		if omegaLControlAction>0:
+			self.MB1.ChangeDutyCycle(0)
+			self.MB2.ChangeDutyCycle(int(omegaLControlAction))
+		else:
+			self.MB2.ChangeDutyCycle(0)
+			self.MB1.ChangeDutyCycle(int(omegaLControlAction))
+
+		print(omegaL_real, "\t", omegaR_real)
+
+
+		
+
+	def realVelCallback(self, velData):
+		self.omegaR_real = velData.right
+		self.omegaL_real = velData.left
 
 
 	def state_callback(self, data):
@@ -144,12 +199,13 @@ class RhapsodyToolkit():
 		
 		# Topic Subscription
 		rospy.Subscriber('state', Int32, self.state_callback)
-		rospy.Subscriber('motor_vel', Twist, self.speedCallback)
+		rospy.Subscriber('cmd_vel', Twist, self.speedCallback)
+		rospy.Subscriber('real_vel', realVel, self.realVelCallback)
 		rate = rospy.Rate(10)
 		
 		while not rospy.is_shutdown():
 			self.color_definition()
-			self.setSpeed()
+			self.calculateLowLevelControl()
 			rate.sleep()
 
 
