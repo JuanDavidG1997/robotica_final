@@ -3,7 +3,7 @@
 import rospy
 import numpy as np
 from geometry_msgs.msg import Pose, Point
-from std_msgs.msg import Int32, String
+from std_msgs.msg import Int32
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 from robotica_final.srv import MoveService, ReadService, PathService
 
@@ -140,7 +140,7 @@ class RhapsodyMaster:
         rospy.Subscriber('estimated_pos', Point, self.estimated_pos_callback)
         rospy.Subscriber('mov_state', Int32, self.mov_state_callback)
         # Topic publisher
-        state_publisher = rospy.Publisher('state', String, queue_size=10)
+        state_publisher = rospy.Publisher('state', Int32, queue_size=10)
         # Local variables
         ready_to_start = False
         correct_password = 0
