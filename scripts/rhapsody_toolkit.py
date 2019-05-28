@@ -106,11 +106,11 @@ class RhapsodyToolkit:
 		self.blue.start(100)
 		self.purple.start(100)
 
-	def speed_callback(self, motorData):
+	def speedCallback(self, motorData):
 		self.linear_vel = motorData.linear.x
 		self.angular_vel = motorData.angular.x
 
-	def calculate_low_level_control(self):
+	def calculateLowLevelControl(self):
 		omegaR_setpoint = self.linear_vel/WHEEL_RADIUS + self.angular_vel
 		omegaL_setpoint = self.linear_vel/WHEEL_RADIUS - self.angular_vel
 
@@ -219,13 +219,14 @@ class RhapsodyToolkit:
 		
 		while not rospy.is_shutdown():
 			self.color_definition()
-			if counter > BLINKING_FREQUENCY:
-				counter = 0
-				if pwm == 0:
-					pwm = 255
-				else:
-					pwm = 0
-			counter = counter + 1
+			if self.state == MOVING:
+				if counter > BLINKING_FREQUENCY:
+					counter = 0
+					if pwm == 0:
+						pwm = 255
+					else:
+						pwm = 0
+				counter = counter + 1
 			self.aileron_led(pwm)
 			self.calculateLowLevelControl()
 			rate.sleep()
