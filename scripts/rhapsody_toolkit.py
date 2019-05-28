@@ -139,7 +139,7 @@ class RhapsodyToolkit:
 			self.MA2.ChangeDutyCycle(0)
 			self.MA1.ChangeDutyCycle(-int(omegaLControlAction))
 
-		print(self.omegaL_real, "\t", self.omegaR_real)
+		print(self.omegaL_real, self.omegaR_real)
 
 
 	def realVelCallback(self, velData):
