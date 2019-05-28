@@ -62,7 +62,8 @@ add_service_files(
    FILES
    MoveService.srv
    ReadService.srv   
-   PathService.srv  
+   PathService.srv
+   EstimationService.srv
  )
 
 ## Generate actions in the 'action' folder
