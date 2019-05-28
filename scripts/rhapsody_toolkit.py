@@ -136,7 +136,7 @@ class RhapsodyToolkit():
 			self.MB2.ChangeDutyCycle(0)
 			self.MB1.ChangeDutyCycle(int(omegaLControlAction))
 
-		print(omegaL_real, "\t", omegaR_real)
+		print(self.omegaL_real, "\t", self.omegaR_real)
 
 
 		
