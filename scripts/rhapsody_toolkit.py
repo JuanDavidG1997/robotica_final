@@ -39,6 +39,14 @@ class RhapsodyToolkit():
 		self.linear_vel = 0.0
 		self.angular_vel = 0.0
 
+		# State variable
+		self.state = None
+
+		# Color variable start
+		self.r_color = 0
+		self.g_color = 0
+		self.b_color = 0
+
 		# GPIO Pins config
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
@@ -49,46 +57,42 @@ class RhapsodyToolkit():
 		GPIO.setup(13, GPIO.OUT)
 		GPIO.setup(15, GPIO.OUT)
 
-		# PWM objects
-		MA1 = GPIO.PWM(11, 500)
-		MA2 = GPIO.PWM(12, 500)
-		MB1 = GPIO.PWM(13, 500)
-		MB2 = GPIO.PWM(15, 500)
-
-		# Motor PWM objects init
-		MA1.start(0)
-		MA2.start(0)
-		MB1.start(0)
-		MB2.start(0)
-
-		self.state = None
-
-		# OutPut definition
+		# LED output definition
 		GPIO.setup(RED_LED, GPIO.OUT)
 		GPIO.setup(GREEN_LED, GPIO.OUT)
 		GPIO.setup(BLUE_LED, GPIO.OUT)
+
+		# PWM objects
+		self.MA1 = GPIO.PWM(11, 500)
+		self.MA2 = GPIO.PWM(12, 500)
+		self.MB1 = GPIO.PWM(13, 500)
+		self.MB2 = GPIO.PWM(15, 500)
 
 		# Frequency definition
 		self.red = GPIO.PWM(RED_LED, PWM_FREQUENCY_LED)
 		self.green = GPIO.PWM(GREEN_LED, PWM_FREQUENCY_LED)
 		self.blue = GPIO.PWM(BLUE_LED, PWM_FREQUENCY_LED)
 
-		# Color variable start
-		self.r_color = 0
-		self.g_color = 0
-		self.b_color = 0
+		# Motor PWM objects init
+		self.MA1.start(0)
+		self.MA2.start(0)
+		self.MB1.start(0)
+		self.MB2.start(0)
 
 		# Starting pins
 		self.red.start(255)
 		self.green.start(255)
 		self.blue.start(255)
 
+
 	def speedCallback(self, motorData):
 		self.linear_vel = motorData.linear.x
 		self.angular_vel = motorData.angular.x
 
+
 	def setSpeed(self):
-		self.s = 0
+		self.MA1.ChangeDutyCycle(self.linear_vel - self.angular_vel)
+		self.MB1.ChangeDutyCycle(self.linear_vel + self.angular_vel)
 
 
 	def state_callback(self, data):
@@ -138,13 +142,18 @@ class RhapsodyToolkit():
 		self.blue.ChangeDutyCycle(self.b_color)
 
 	def main(self):
+		
 		# Node init
 		rospy.init_node('rhapsody_toolkit', anonymous=False)
+		
 		# Topic Subscription
 		rospy.Subscriber('state', Int32, self.state_callback)
+		rospy.Subscriber('motor_vel', Twist, self.speedCallback)
 		rate = rospy.Rate(10)
+		
 		while not rospy.is_shutdown():
 			self.color_definition()
+			self.setSpeed()
 			rate.sleep()
 
 
