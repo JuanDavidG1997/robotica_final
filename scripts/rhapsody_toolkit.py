@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 
 import rospy
-
+from geometry_msgs.msg import Twist
 
 
 class RhapsodyToolkit():
-	"""docstring for RhapsodyToolkit"""
+	
+
 	def __init__(self):
-		super(RhapsodyToolkit, self).__init__()
-		self.arg = arg
+		
+		rospy.init_node('rhapsody_toolkit', Anonymous=True)
+		
+		rospy.Subscriber("motor_vel", Twist, speedCallback)
+
+		rospy.spin()
+
+	def speedCallback(motorData):
+
+
+
 
 
 
