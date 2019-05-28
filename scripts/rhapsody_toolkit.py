@@ -46,8 +46,8 @@ class RhapsodyToolkit():
 		self.omegaR_real = 0.0
 
 		# PI controller variables
-		self.KP = 1.0
-		self.KI = 2.0
+		self.KP = 0.5
+		self.KI = 1
 		self.omegaRError = 0.0
 		self.omegaLError = 0.0
 		self.omegaRIntegralError = 0.0
@@ -106,8 +106,8 @@ class RhapsodyToolkit():
 
 
 	def calculateLowLevelControl(self):
-		omegaR_setpoint = 1
-		omegaL_setpoint = 1
+		omegaR_setpoint = -6.3
+		omegaL_setpoint = -6.3
 
 		self.omegaRError = omegaR_setpoint - self.omegaR_real
 		self.omegaLError = omegaL_setpoint - self.omegaL_real
@@ -121,20 +121,20 @@ class RhapsodyToolkit():
 		omegaRControlAction = np.clip(self.KP * self.omegaRError + self.KI * self.omegaRIntegralError, -100, 100)
 		omegaLControlAction = np.clip(self.KP * self.omegaLError + self.KI * self.omegaLIntegralError, -100, 100)
 
-		if omegaRControlAction>0:
-			self.MA1.ChangeDutyCycle(0)
-			self.MA2.ChangeDutyCycle(int(omegaRControlAction))
+		if omegaRControlAction<0:
+			self.MB1.ChangeDutyCycle(0)
+			self.MB2.ChangeDutyCycle(-int(omegaRControlAction))
 		else:
-			self.MA2.ChangeDutyCycle(0)
-			self.MA1.ChangeDutyCycle(int(omegaRControlAction))
+			self.MB2.ChangeDutyCycle(0)
+			self.MB1.ChangeDutyCycle(int(omegaRControlAction))
 
 
 		if omegaLControlAction>0:
-			self.MB1.ChangeDutyCycle(0)
-			self.MB2.ChangeDutyCycle(int(omegaLControlAction))
+			self.MA1.ChangeDutyCycle(0)
+			self.MA2.ChangeDutyCycle(int(omegaLControlAction))
 		else:
-			self.MB2.ChangeDutyCycle(0)
-			self.MB1.ChangeDutyCycle(int(omegaLControlAction))
+			self.MA2.ChangeDutyCycle(0)
+			self.MA1.ChangeDutyCycle(-int(omegaLControlAction))
 
 		print(self.omegaL_real, "\t", self.omegaR_real)
 
