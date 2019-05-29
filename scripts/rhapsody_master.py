@@ -96,13 +96,13 @@ class RhapsodyMaster:
         except rospy.ServiceException:
             print("Service call to path_planner failed")
 
-    def ask_for_move(self, path):
+    def ask_for_move(self, pathx, pathy):
         print("Requesting movement...")
         self.change_state(MOVING)
         rospy.wait_for_service('move')
         try:
             move = rospy.ServiceProxy('move', MoveService)
-            request = move(path, self.goal_orientation)
+            request = move(pathx, pathy, self.goal_orientation)
         except rospy.ServiceException:
             print("Service call to move failed")
 
@@ -180,10 +180,8 @@ class RhapsodyMaster:
             # Asking for path. PATH_SERVICE
             if self.request_path:
                 path = self.ask_for_path()
-                # path = {'pathx': '[10, 5, 0]', 'pathy': '[10, 5, 0]'}
-                # path = [[10, 5, 0], [10, 5, 0]]
                 # Asking for movement. ASK_MOVE
-                self.ask_for_move(path)
+                self.ask_for_move(path.pathx, path.pathy)
             # If arrived. ASK_READ
             if self.mov_state == 3:
                 self.password = self.ask_for_read()
