@@ -149,7 +149,7 @@ class RhapsodyMaster:
 # ----------------------------------------------------------------------------------------------------------------------
     def change_state(self, p_state):
         self.actual_state = p_state
-        self.state_publisher(self.actual_state)
+        self.state_publisher.publish(self.actual_state)
         return self.actual_state
 
 # ----------------------------------------------------------------------------------------------------------------------
