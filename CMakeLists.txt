@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   rospy
   std_msgs
+  sensor_msgs
   message_generation
 )
 
@@ -64,6 +65,7 @@ add_service_files(
    ReadService.srv   
    PathService.srv
    EstimationService.srv
+   PhotoService.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -78,6 +80,7 @@ generate_messages(
    DEPENDENCIES
    geometry_msgs
    std_msgs
+   sensor_msgs
  )
 
 ################################################
@@ -112,7 +115,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robotica_final
-#  CATKIN_DEPENDS geometry_msgs master_msgs_iele3338 roscpp roslib rospy std_msgs
+#  CATKIN_DEPENDS geometry_msgs master_msgs_iele3338 roscpp roslib rospy std_msgs sensor_msgs
 #  DEPENDS system_lib
 )
 
