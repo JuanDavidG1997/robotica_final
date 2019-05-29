@@ -63,7 +63,7 @@ class RhapsodyToolkit:
 		self.r_color = 0
 		self.g_color = 0
 		self.b_color = 0
-		self.p_color = 255
+		self.p_color = 0
 
 		# GPIO Pins config
 		GPIO.setmode(GPIO.BCM)
