@@ -179,7 +179,7 @@ class RhapsodyMaster:
                 ready_to_start = self.ask_for_ack_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
-            #self.ask_for_estimation_service()
+            self.ask_for_estimation_service()
             # Received Start_Service
             # Asking for path. PATH_SERVICE
             if self.request_path:

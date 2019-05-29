@@ -35,8 +35,6 @@ class PathPlanner:
         # Calls the method according to the requested algorithm
         if algorithm == 'RRT':
             pathx, pathy = self.rrt_planning(goal)
-        pathx = [1000, 500, 0]
-        pathy = [0, 0, 0]
         p = [pathx, pathy]
         print("Service response: " + str(p))
         return p
@@ -47,7 +45,7 @@ class PathPlanner:
         start = (self.x_pos, self.y_pos)
         goal = (goal[0], goal[1])
         # RRT object creation
-        path_object = RRT(start, goal, self.obstacle_list, [100, 2500], expandDis=1.2, goalSampleRate=5, maxIter=400)
+        path_object = RRT(start, goal, self.obstacle_list, [0, 2500], expandDis=200, goalSampleRate=5, maxIter=400)
         # Requesting path
         path = path_object.Planning(False)
         # Organizing path
@@ -60,11 +58,10 @@ class PathPlanner:
             path_y.append(path[i][1])
         return path_x, path_y
 
-
     # Principal method
     def main(self):
         # Node initialization
-        rospy.init_node('path_planner', anonymous=True)
+        rospy.init_node('path_planner', anonymous=False)
         # Service proxy declaration
         path = rospy.Service('path_planning', PathService, self.path_planning)
         rospy.spin()
