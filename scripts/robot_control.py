@@ -19,8 +19,8 @@ POSITIONING = 4
 K_RHO = 0.3
 K_ALPHA = 0.8
 K_BETA = -0.01
+K_ORI_FINAL = 2
 K = [K_RHO, K_ALPHA, K_BETA]
-
 
 # Main Class for the robot control
 class RobotControl:
@@ -133,15 +133,13 @@ class RobotControl:
                     w = 0
                 else:
                     # Verify orientation
-                    oriented = (abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG)
-                    if not oriented:
-                        orientationError = self.theta - self.currentGoal[2]
-                        if abs(orientationError) > m.pi / 2:
-                            w = orientationError / m.pi
-                            v = 0
-                        else:
-                            w = - orientationError / m.pi
-                            v = 0
+                    orientationError = self.theta - self.currentGoal[2]
+                    if abs(orientationError):
+                        w = - orientationError*K_ORI_FINAL
+                        v = 0
+                    else:
+                        w = orientationError*K_ORI_FINAL
+                        v = 0
 
             # Moving State
             if self.state == MOVING:
