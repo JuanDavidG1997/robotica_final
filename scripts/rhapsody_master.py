@@ -59,6 +59,7 @@ class RhapsodyMaster:
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles
         self.request_path = True
+        return
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------Service requests--------------------------------------------------------
@@ -93,6 +94,7 @@ class RhapsodyMaster:
         try:
             path = rospy.ServiceProxy('path_planning', PathService)
             request = path(x_start, y_start, x_goal, y_goal, obstacle_list, algorithm)
+            self.request_path = False
             return request
         except rospy.ServiceException:
             print("Service call to path_planner failed")
