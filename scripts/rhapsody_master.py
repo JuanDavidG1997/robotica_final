@@ -37,6 +37,7 @@ class RhapsodyMaster:
         self.request_path = False
         self.start_orientation = 0
         self.goal_orientation = 0
+        self.state_publisher = None
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------Topic Callbacks--------------------------------------------------------
@@ -59,7 +60,7 @@ class RhapsodyMaster:
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles
         self.request_path = True
-        return
+        return []
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------Service requests--------------------------------------------------------
@@ -148,6 +149,7 @@ class RhapsodyMaster:
 # ----------------------------------------------------------------------------------------------------------------------
     def change_state(self, p_state):
         self.actual_state = p_state
+        self.state_publisher(self.actual_state)
         return self.actual_state
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -163,8 +165,7 @@ class RhapsodyMaster:
         rospy.Subscriber('estimated_pos', Point, self.estimated_pos_callback)
         rospy.Subscriber('mov_state', Int32, self.mov_state_callback)
         # Topic publisher
-        state_publisher = rospy.Publisher('state', Int32, queue_size=10)
-        self.cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+        self.state_publisher = rospy.Publisher('state', Int32, queue_size=10)
         # Local variables
         ready_to_start = False
         correct_password = 0
@@ -172,7 +173,7 @@ class RhapsodyMaster:
         rate = rospy.Rate(10)
         # Local cycle
         while not rospy.is_shutdown():
-            state_publisher.publish(self.actual_state)
+            self.state_publisher.publish(self.actual_state)
             # Ready to start. ACK_SERVICE
             while not ready_to_start:
                 ready_to_start = self.ask_for_ack_service()
