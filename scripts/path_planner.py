@@ -35,6 +35,8 @@ class PathPlanner:
         # Calls the method according to the requested algorithm
         if algorithm == 'RRT':
             pathx, pathy = self.rrt_planning(goal)
+        pathx = [1000, 500, 0]
+        pathy = [1000, 500, 0]
         p = [pathx, pathy]
         print("Service response: " + str(p))
         return p
