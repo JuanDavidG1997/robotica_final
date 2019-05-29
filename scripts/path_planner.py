@@ -2,12 +2,9 @@
 # License removed for brevity
 
 # Necessary imports
-import math as m
-import networkx as nx
 import numpy as np
 import rospy
 from simple_rrt import RRT
-from Graph import Graph
 from robotica_final.srv import PathService
 
 
@@ -38,8 +35,6 @@ class PathPlanner:
         # Calls the method according to the requested algorithm
         if algorithm == 'RRT':
             pathx, pathy = self.rrt_planning(goal)
-        elif algorithm == 'Astar':
-            pathx, pathy = self.a_star_path_planning(goal)
         p = [pathx, pathy]
         print("Service response: " + str(p))
         return p
@@ -63,34 +58,6 @@ class PathPlanner:
             path_y.append(path[i][1])
         return path_x, path_y
 
-    # Executes Astar path planning method
-    def a_star_path_planning(self, goal):
-        print("Astar requested. Goal is: " + str(goal))
-        # Graph creation
-        G = Graph()
-        G = G.graph_building(self.obstacle_list)
-        # Rounding goal and start to known nodes
-        distORigin = [m.sqrt((xy[0] - self.x_pos) ** 2 + (xy[1] - self.y_pos) ** 2) for xy in G.nodes()]
-        distGoal = [m.sqrt((xy[0] - goal[0]) ** 2 + (xy[1] - goal[1]) ** 2) for xy in G.nodes()]
-        nodeOrigin = np.argmin(distORigin)
-        nodeGoal = np.argmin(distGoal)
-        nodes = list(G.nodes())
-        # Requesting path
-        path = nx.astar_path(G, nodes[nodeOrigin], nodes[nodeGoal], heuristic=self.heuristic)
-        path_x = []
-        path_y = []
-        # Building service response
-        for i in range(0, len(path)):
-            path_x.append(path[i][0])
-            path_y.append(path[i][1])
-        return path_x, path_y
-
-    # Euclidean distance calculation
-    def heuristic(self, node_a, node_b):
-        (x1, y1) = node_a
-        (x2, y2) = node_b
-        h_value = m.sqrt((x1-x2)**2+(y1-y2)**2)
-        return h_value
 
     # Principal method
     def main(self):
