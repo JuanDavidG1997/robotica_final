@@ -27,12 +27,12 @@ MOVING = 4
 READING_NUMBERS = 5
 EMERGENCY_STOP = 6
 FINISHED_TEST = 7
-ACK_SERVICE_COLOR = [255, 0, 0, 255]
+ACK_SERVICE_COLOR = [255, 0, 0, 0]
 READY_TO_START_COLOR = [0, 255, 0, 0]
-PATH_PLANNING_COLOR = [0, 0, 255, 255]
-MOVING_COLOR = [255, 0, 255, 255]
-READING_NUMBERS_COLOR = [0, 255, 255, 0]
-EMERGENCY_STOP_COLOR = [255, 255, 0, 0]
+PATH_PLANNING_COLOR = [0, 0, 255, 0]
+MOVING_COLOR = [0, 0, 0, 255]
+READING_NUMBERS_COLOR = [255, 255, 255, 0]
+EMERGENCY_STOP_COLOR = [255, 0, 0, 0]
 FINISHED_TEST_COLOR = [255, 255, 255, 255]
 
 
@@ -162,7 +162,7 @@ class RhapsodyToolkit:
 		self.omegaL_real = velData.left
 
 	def state_callback(self, data):
-		self.state = data
+		self.state = data.data
 
 	def color_definition(self):
 		# Check actual state

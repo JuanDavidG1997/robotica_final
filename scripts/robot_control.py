@@ -126,7 +126,7 @@ class RobotControl:
             # Positioning State
             if self.state == POSITIONING:
                 # Verify if finish
-                finishCondition = abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG
+                finishCondition = abs(self.theta - self.currentGoal[2]) < THRESHOLD_ANG or abs(self.theta - self.currentGoal[2]+2 * m.pi) < THRESHOLD_ANG
                 if finishCondition:
                     self.state = FINISHED
                     v = 0
@@ -134,7 +134,7 @@ class RobotControl:
                 else:
                     # Verify orientation
                     orientationError = self.theta - self.currentGoal[2]
-                    if abs(orientationError):
+                    if abs(orientationError)>0:
                         w = - orientationError*K_ORI_FINAL
                         v = 0
                     else:

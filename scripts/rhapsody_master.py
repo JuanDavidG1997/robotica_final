@@ -24,7 +24,7 @@ FINISHED_TEST = 7
 class RhapsodyMaster:
 
     def __init__(self):
-        self.actual_state = 0
+        self.actual_state = ACK_SERVICE
         self.start = None
         self.goal = None
         self.n_obstacles = None
@@ -46,7 +46,7 @@ class RhapsodyMaster:
         self.estimated_pos = data
 
     def mov_state_callback(self, data):
-        self.mov_state = data
+        self.mov_state = data.data
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------Service handler--------------------------------------------------------
@@ -116,9 +116,9 @@ class RhapsodyMaster:
         self.change_state(READING_NUMBERS)
         rospy.wait_for_service('read')
         try:
-            read = rospy.ServiceProxy('read', ReadService)
+            read = rospy.ServiceProxy('/read', ReadService)
             request = read()
-            return request.data.password
+            return request.password
         except rospy.ServiceException:
             print("Service call to read failed")
 
@@ -176,10 +176,12 @@ class RhapsodyMaster:
         while not rospy.is_shutdown():
             self.state_publisher.publish(self.actual_state)
             # Ready to start. ACK_SERVICE
-            while not ready_to_start:
+            if not ready_to_start and self.actual_state == ACK_SERVICE:
+		self.state_publisher.publish(self.actual_state)
                 ready_to_start = self.ask_for_ack_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
+		    
             # Received Start_Service
             # Asking for path. PATH_SERVICE
             if self.request_path:
@@ -187,9 +189,10 @@ class RhapsodyMaster:
                 # Asking for movement. ASK_MOVE
                 self.ask_for_move(path.pathx, path.pathy)
             # If arrived. ASK_READ
-            if self.mov_state == 3:
+	    while self.mov_state == 3 and not (correct_password == 1):
                 self.password = self.ask_for_read()
                 # Checking received password. ASK_END_SERVICE
+		print("Enviando clave...")
                 correct_password = self.ask_for_end_service()
             # FINISHED_TEST
             if correct_password == 1:
