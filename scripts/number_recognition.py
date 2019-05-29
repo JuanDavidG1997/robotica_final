@@ -11,7 +11,7 @@ class NumberRecognition():
 
 	# Service callback
 	def serviceCallback(self, srv):
-		return 1234
+		return 0000
 
 
 	def main(self):
