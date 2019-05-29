@@ -8,9 +8,9 @@ from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
 from matplotlib import collections as mc
 
-xlim = [-4, 11]
-ylim = [-4, 11]
-node_radius = 0.5
+xlim = [0, 2000]
+ylim = [0, 2000]
+node_radius = 50
 
 
 class Graph:
@@ -59,7 +59,7 @@ class Graph:
         nodes_to_remove_id = []
         for j in obstacle_list:
             for i in range(0, len(nodes)):
-                if self.obstacle_in_node(nodes[i], j[0], j[1], j[2]+0.25):
+                if self.obstacle_in_node(nodes[i], j[0], j[1], j[2]+250):
                     nodes_to_remove.append(nodes[i])
                     nodes_to_remove_id.append(nodes[i][0])
 
@@ -90,8 +90,9 @@ class Graph:
         # Plotting graph
         aux_x = [x[3] for x in nodes]
         aux_y = [x[4] for x in nodes]
-        lc = mc.LineCollection(lines)
-        fig, ax = plt.subplots()
-        ax.add_collection(lc)
-        plt.scatter(aux_x, aux_y)
+        #lc = mc.LineCollection(lines)
+        #fig, ax = plt.subplots()
+        #ax.add_collection(lc)
+        #plt.scatter(aux_x, aux_y)
+        #plt.show()
         return G

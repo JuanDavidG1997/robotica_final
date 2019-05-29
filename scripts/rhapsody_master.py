@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy as np
-from geometry_msgs.msg import Pose, Point
+from geometry_msgs.msg import Pose, Point, Twist
 from std_msgs.msg import Int32
 from master_msgs_iele3338.srv import AckService, EndService, StartService
 from robotica_final.srv import MoveService, ReadService, PathService, EstimationService
@@ -38,6 +37,7 @@ class RhapsodyMaster:
         self.request_path = False
         self.start_orientation = 0
         self.goal_orientation = 0
+        self.state_publisher = None
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------Topic Callbacks--------------------------------------------------------
@@ -53,12 +53,15 @@ class RhapsodyMaster:
 # ----------------------------------------------------------------------------------------------------------------------
     def handle_start_service(self, data):
         self.start = (data.start.position.x, data.start.position.y)
+        # self.start = (0, 0)
         self.start_orientation = data.start.orientation.w
         self.goal = (data.goal.position.x, data.goal.position.y)
         self.goal_orientation = data.goal.orientation.w
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles
         self.request_path = True
+        self.ask_for_estimation_service()
+        return []
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------Service requests--------------------------------------------------------
@@ -83,9 +86,8 @@ class RhapsodyMaster:
         y_start = self.start[1]
         x_goal = self.goal[0]
         y_goal = self.goal[1]
-        algorithm = 'RRT'
+        algorithm = 'Astar'
         obstacle_list = []
-        print(self.n_obstacles)
         for i in range(0, self.n_obstacles):
             obstacle = self.obstacles[i]
             obstacle_append = obs(obstacle.position.position.x, obstacle.position.position.y, obstacle.radius)
@@ -94,17 +96,18 @@ class RhapsodyMaster:
         try:
             path = rospy.ServiceProxy('path_planning', PathService)
             request = path(x_start, y_start, x_goal, y_goal, obstacle_list, algorithm)
+            self.request_path = False
             return request
         except rospy.ServiceException:
             print("Service call to path_planner failed")
 
-    def ask_for_move(self, path):
+    def ask_for_move(self, pathx, pathy):
         print("Requesting movement...")
         self.change_state(MOVING)
         rospy.wait_for_service('move')
         try:
             move = rospy.ServiceProxy('move', MoveService)
-            request = move(path, self.goal_orientation)
+            request = move(pathx, pathy, self.goal_orientation)
         except rospy.ServiceException:
             print("Service call to move failed")
 
@@ -135,8 +138,8 @@ class RhapsodyMaster:
         try:
             start_estimation = rospy.ServiceProxy('start_estimation', EstimationService)
             pose_estimation = Pose()
-            pose_estimation.position.x = self.start.x
-            pose_estimation.position.y = self.start.y
+            pose_estimation.position.x = self.start[0]
+            pose_estimation.position.y = self.start[1]
             pose_estimation.orientation.w = self.start_orientation
             request = start_estimation(pose_estimation)
         except rospy.ServiceException:
@@ -147,6 +150,7 @@ class RhapsodyMaster:
 # ----------------------------------------------------------------------------------------------------------------------
     def change_state(self, p_state):
         self.actual_state = p_state
+        self.state_publisher.publish(self.actual_state)
         return self.actual_state
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -162,7 +166,7 @@ class RhapsodyMaster:
         rospy.Subscriber('estimated_pos', Point, self.estimated_pos_callback)
         rospy.Subscriber('mov_state', Int32, self.mov_state_callback)
         # Topic publisher
-        state_publisher = rospy.Publisher('state', Int32, queue_size=10)
+        self.state_publisher = rospy.Publisher('state', Int32, queue_size=10)
         # Local variables
         ready_to_start = False
         correct_password = 0
@@ -170,19 +174,18 @@ class RhapsodyMaster:
         rate = rospy.Rate(10)
         # Local cycle
         while not rospy.is_shutdown():
-            state_publisher.publish(self.actual_state)
+            self.state_publisher.publish(self.actual_state)
             # Ready to start. ACK_SERVICE
             while not ready_to_start:
                 ready_to_start = self.ask_for_ack_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
-            #self.ask_for_estimation_service()
             # Received Start_Service
             # Asking for path. PATH_SERVICE
             if self.request_path:
                 path = self.ask_for_path()
                 # Asking for movement. ASK_MOVE
-                self.ask_for_move(path)
+                self.ask_for_move(path.pathx, path.pathy)
             # If arrived. ASK_READ
             if self.mov_state == 3:
                 self.password = self.ask_for_read()

@@ -1,0 +1,16 @@
+<launch> 
+<node pkg="robotica_final" type="rhapsody_master.py" name="rhapsody_master"> 
+</node> 
+
+<node pkg="robotica_final" type="pos_estimation.py" name="pos_estimation"> 
+</node> 
+
+<node pkg="robotica_final" type="rhapsody_toolkit.py" name="rhapsody_toolkit"> 
+</node> 
+
+<node pkg="robotica_final" type="encod_reader.py" name="encod_reader"> 
+</node> 
+
+
+</launch>
+

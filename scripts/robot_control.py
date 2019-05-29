@@ -3,11 +3,11 @@
 import rospy
 import math as m
 from geometry_msgs.msg import Pose, Twist
-from std_msgs.msg import Int16
+from std_msgs.msg import Int32
 from robotica_final.srv import *
 
 # Threshold
-THRESHOLD_LIN = 0.1
+THRESHOLD_LIN = 300
 THRESHOLD_ANG = 0.2
 # States
 WAITING = 0
@@ -16,9 +16,9 @@ EMERGENCY_STOP = 2
 FINISHED = 3
 POSITIONING = 4
 # Control variables
-K_RHO = 1.25
-K_ALPHA = 1.5
-K_BETA = -0.5
+K_RHO = 0.3
+K_ALPHA = 0.8
+K_BETA = -0.01
 K = [K_RHO, K_ALPHA, K_BETA]
 
 
@@ -30,20 +30,23 @@ class RobotControl:
         self.xPos = 0.0
         self.yPos = 0.0
         self.theta = 0.0
+        self.finalTheta = 0.0
         # Path Attributes
         self.path = []
-        self.currentGoal = [0, 0, 0]
+        self.currentGoal = [0.0, 0.0, 0.0]
         # State Attributes
         self.state = WAITING
         # self.moving = False
         # self.positioning = False
         # Pub Messages
         self.vel = Twist()
-        self.movementState = Int16()
+        self.movementState = Int32()
 
     def handle_move_service(self, msg):
-        self.path[:][0] = msg.pathx
-        self.path[:][1] = msg.pathy
+        self.path = []
+        self.path.append(msg.pathx)
+        self.path.append(msg.pathy)
+        self.finalTheta = msg.w
         self.state = MOVING
 
     def estimated_pos_callback(self, msg):
@@ -98,9 +101,9 @@ class RobotControl:
         # Service provider
         move = rospy.Service('move', MoveService, self.handle_move_service)
         # Topic subscriber
-        rospy.Subscriber('estimated_pos', Pose, self.estimated_pos_callback)
+        rospy.Subscriber('robot_position', Pose, self.estimated_pos_callback)
         # Topic publisher
-        pubState = rospy.Publisher('mov_state', Int16, queue_size=10)
+        pubState = rospy.Publisher('mov_state', Int32, queue_size=10)
         pubVel = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         # Frequency rate
         rate = rospy.Rate(10)
@@ -144,11 +147,11 @@ class RobotControl:
             if self.state == MOVING:
                 # --------------------- Next Goal ---------------------
                 # Verify if arrived to last goal
-                if p == len(self.path[1][:]):
+                if p == len(self.path[0]):
                     self.state = POSITIONING
                 # Arrived to Next point condition
                 if arrivedToCurrentGoal:
-                    self.currentGoal = [self.path[0][p], self.path[1][p], 0]
+                    self.currentGoal = [self.path[0][p], self.path[1][p], self.finalTheta]
                     p = p + 1
                 # --------------------- CONTROL ---------------------
                 # Calculate directions
