@@ -52,6 +52,7 @@ class RhapsodyMaster:
 # ----------------------------------------------------------------------------------------------------------------------
     def handle_start_service(self, data):
         self.start = (data.start.position.x, data.start.position.y)
+        self.start = (0, 0)
         self.start_orientation = data.start.orientation.w
         self.goal = (data.goal.position.x, data.goal.position.y)
         self.goal_orientation = data.goal.orientation.w

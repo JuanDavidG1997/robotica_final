@@ -29,10 +29,10 @@ FINISHED_TEST = 7
 ACK_SERVICE_COLOR = [255, 0, 0]
 READY_TO_START_COLOR = [0, 255, 0]
 PATH_PLANNING_COLOR = [0, 0, 255]
-MOVING_COLOR = [255, 0, 255]
+MOVING_COLOR = [255, 255, 255]
 READING_NUMBERS_COLOR = [0, 255, 255]
 EMERGENCY_STOP_COLOR = [255, 255, 0]
-FINISHED_TEST_COLOR = [255, 255, 255]
+FINISHED_TEST_COLOR = [255, 0, 255]
 
 
 class RhapsodyToolkit:
@@ -63,7 +63,7 @@ class RhapsodyToolkit:
 		self.r_color = 0
 		self.g_color = 0
 		self.b_color = 0
-		self.p_color = 0
+		self.p_color = 255
 
 		# GPIO Pins config
 		GPIO.setmode(GPIO.BCM)
