@@ -86,7 +86,7 @@ class RhapsodyMaster:
         y_start = self.start[1]
         x_goal = self.goal[0]
         y_goal = self.goal[1]
-        algorithm = 'RRT'
+        algorithm = 'Astar'
         obstacle_list = []
         for i in range(0, self.n_obstacles):
             obstacle = self.obstacles[i]

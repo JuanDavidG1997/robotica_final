@@ -65,7 +65,7 @@ class encodReader:
         # Topic publisher
         pubVel = rospy.Publisher('real_vel', realVel, queue_size=10)
         # Frequency rate
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(5)
         # --------------------- Local variables ---------------------
         prevTime = 0.0
         prevRrad = 0.0
@@ -76,7 +76,7 @@ class encodReader:
         actualLVrad = 0.0
         while not rospy.is_shutdown():
             # Calculate actual rad and time
-            actualRrad = (self.rightEncoderCounts/COUNT_CTE)*2*m.pi
+            actualRrad = (self.rightEncoderCounts/(COUNT_CTE+180))*2*m.pi
             actualLrad = (self.leftEncoderCounts/COUNT_CTE)*2*m.pi
             actualTime = rospy.get_time()
             #print('Cuentas Izquierda: {} \t Cuentas Derecha: {}'.format(self.leftEncoderCounts, self.rightEncoderCounts))

@@ -10,7 +10,7 @@ from master_msgs_iele3338.msg import Covariance
 from robotica_final.msg import realVel
 
 # Constantes
-L = 80.0
+L = 70.0
 radius = 29.3/2
 
 
@@ -90,10 +90,7 @@ class posEstimator:
             self.estimated.orientation.w = self.actualPos[2]
             pubPos.publish(self.estimated)
 
-
             # Update prev variables
-            prevVelL = actualVelL
-            prevVelR = actualVelR
             prevTime = actualTime
 
             # --------------------- Estimate Covariance ---------------------

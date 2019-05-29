@@ -7,7 +7,7 @@ from std_msgs.msg import Int32
 from robotica_final.srv import *
 
 # Threshold
-THRESHOLD_LIN = 125
+THRESHOLD_LIN = 100
 THRESHOLD_ANG = 0.2
 # States
 WAITING = 0
@@ -16,9 +16,9 @@ EMERGENCY_STOP = 2
 FINISHED = 3
 POSITIONING = 4
 # Control variables
-K_RHO = 0.25
-K_ALPHA = 0.3
-K_BETA = -0.1
+K_RHO = 0.6
+K_ALPHA = 0.8
+K_BETA = -0.025
 K = [K_RHO, K_ALPHA, K_BETA]
 
 
@@ -101,7 +101,7 @@ class RobotControl:
         # Service provider
         move = rospy.Service('move', MoveService, self.handle_move_service)
         # Topic subscriber
-        rospy.Subscriber('estimated_pos', Pose, self.estimated_pos_callback)
+        rospy.Subscriber('robot_position', Pose, self.estimated_pos_callback)
         # Topic publisher
         pubState = rospy.Publisher('mov_state', Int32, queue_size=10)
         pubVel = rospy.Publisher('cmd_vel', Twist, queue_size=10)

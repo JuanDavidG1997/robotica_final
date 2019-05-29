@@ -27,13 +27,13 @@ MOVING = 4
 READING_NUMBERS = 5
 EMERGENCY_STOP = 6
 FINISHED_TEST = 7
-ACK_SERVICE_COLOR = [255, 0, 0]
-READY_TO_START_COLOR = [0, 255, 0]
-PATH_PLANNING_COLOR = [0, 0, 255]
-MOVING_COLOR = [255, 0, 255]
-READING_NUMBERS_COLOR = [0, 255, 255]
-EMERGENCY_STOP_COLOR = [255, 255, 0]
-FINISHED_TEST_COLOR = [255, 255, 255]
+ACK_SERVICE_COLOR = [255, 0, 0, 255]
+READY_TO_START_COLOR = [0, 255, 0, 0]
+PATH_PLANNING_COLOR = [0, 0, 255, 255]
+MOVING_COLOR = [255, 0, 255, 255]
+READING_NUMBERS_COLOR = [0, 255, 255, 0]
+EMERGENCY_STOP_COLOR = [255, 255, 0, 0]
+FINISHED_TEST_COLOR = [255, 255, 255, 255]
 
 
 class RhapsodyToolkit:
@@ -49,8 +49,8 @@ class RhapsodyToolkit:
 		self.omegaR_real = 0.0
 
 		# PI controller variables
-		self.KP = 0.5
-		self.KI = 1
+		self.KP = 0.4
+		self.KI = 0.6
 		self.omegaRError = 0.0
 		self.omegaLError = 0.0
 		self.omegaRIntegralError = 0.0
@@ -61,7 +61,7 @@ class RhapsodyToolkit:
 
 
 		# State variable
-		self.state = MOVING
+		self.state = ACK_SERVICE
 
 		# Color variable start
 		self.r_color = 0
@@ -170,53 +170,49 @@ class RhapsodyToolkit:
 			self.r_color = ACK_SERVICE_COLOR[0]
 			self.g_color = ACK_SERVICE_COLOR[1]
 			self.b_color = ACK_SERVICE_COLOR[2]
+			self.p_color = ACK_SERVICE_COLOR[3]
 
 		elif self.state == READY_TO_START:
 			self.r_color = READY_TO_START_COLOR[0]
 			self.g_color = READY_TO_START_COLOR[1]
 			self.b_color = READY_TO_START_COLOR[2]
+			self.p_color = READY_TO_START_COLOR[3]
 
 		elif self.state == PATH_PLANNING:
 			self.r_color = PATH_PLANNING_COLOR[0]
 			self.g_color = PATH_PLANNING_COLOR[1]
 			self.b_color = PATH_PLANNING_COLOR[2]
+			self.p_color = PATH_PLANNING_COLOR[3]
 
 		elif self.state == MOVING:
 			self.r_color = MOVING_COLOR[0]
 			self.g_color = MOVING_COLOR[1]
 			self.b_color = MOVING_COLOR[2]
+			self.p_color = MOVING_COLOR[3]
 
 		elif self.state == READING_NUMBERS:
 			self.r_color = READING_NUMBERS_COLOR[0]
 			self.g_color = READING_NUMBERS_COLOR[1]
 			self.b_color = READING_NUMBERS_COLOR[2]
+			self.p_color = READING_NUMBERS_COLOR[3]
 
 		elif self.state == EMERGENCY_STOP:
 			self.r_color = EMERGENCY_STOP_COLOR[0]
 			self.g_color = EMERGENCY_STOP_COLOR[1]
 			self.b_color = EMERGENCY_STOP_COLOR[2]
+			self.p_color = EMERGENCY_STOP_COLOR[3]
 
 		elif self.state == FINISHED_TEST:
 			self.r_color = FINISHED_TEST_COLOR[0]
 			self.g_color = FINISHED_TEST_COLOR[1]
 			self.b_color = FINISHED_TEST_COLOR[2]
+			self.p_color = FINISHED_TEST_COLOR[3]
 
 		# PWM generation
 		self.red.ChangeDutyCycle(self.r_color/255*100)
 		self.green.ChangeDutyCycle(self.g_color/255*100)
 		self.blue.ChangeDutyCycle(self.b_color/255*100)
-
-	def aileron_led(self, pwm):
-		if self.state == MOVING:
-			self.p_color = pwm
-
-		elif self.state == FINISHED_TEST:
-			self.p_color = pwm
-
-		else:
-			self.p_color = 0
-
-		self.purple.ChangeDutyCycle(self.p_color / 255 * 100)
+		self.purple.ChangeDutyCycle(self.p_color/255*100)
 
 	def main(self):
 		
@@ -228,21 +224,9 @@ class RhapsodyToolkit:
 		rospy.Subscriber('state', Int32, self.state_callback)
 		rospy.Subscriber('cmd_vel', Twist, self.speedCallback)
 		rospy.Subscriber('real_vel', realVel, self.realVelCallback)
-		rate = rospy.Rate(10)
-		counter = 0
-		pwm = 0
-		
+		rate = rospy.Rate(5)
 		while not rospy.is_shutdown():
 			self.color_definition()
-			if self.state == MOVING:
-				if counter > BLINKING_FREQUENCY:
-					counter = 0
-					if pwm == 0:
-						pwm = 255
-					else:
-						pwm = 0
-				counter = counter + 1
-			self.aileron_led(pwm)
 			self.calculateLowLevelControl()
 			rate.sleep()
 
