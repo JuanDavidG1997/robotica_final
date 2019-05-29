@@ -47,7 +47,7 @@ class PathPlanner:
         start = (self.x_pos, self.y_pos)
         goal = (goal[0], goal[1])
         # RRT object creation
-        path_object = RRT(start, goal, self.obstacle_list, [-4, 11], expandDis=1.2, goalSampleRate=5, maxIter=500)
+        path_object = RRT(start, goal, self.obstacle_list, [100, 2500], expandDis=1.2, goalSampleRate=5, maxIter=400)
         # Requesting path
         path = path_object.Planning(False)
         # Organizing path
