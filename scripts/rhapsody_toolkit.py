@@ -8,7 +8,6 @@ from robotica_final.msg import realVel
 import numpy as np
 
 
-BLINKING_FREQUENCY = 200
 PWM_FREQUENCY_LED = 100
 AILERON_LED = 12
 RED_LED = 16
@@ -57,7 +56,7 @@ class RhapsodyToolkit:
 		self.lastTimeLowLevel = 0.0
 
 		# State variable
-		self.state = MOVING
+		self.state = ACK_SERVICE
 
 		# Color variable start
 		self.r_color = 0
