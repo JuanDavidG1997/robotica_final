@@ -5,9 +5,6 @@
 <node pkg="robotica_final" type="path_planner.py" name="path_planner"> 
 </node> 
 
-<node pkg="robotica_final" type="encod_reader.py" name="encod_reader"> 
-</node> 
-
 <node pkg="robotica_final" type="pos_estimation.py" name="pos_estimation"> 
 </node> 
 
@@ -15,6 +12,9 @@
 </node> 
 
 <node pkg="robotica_final" type="robot_control.py" name="robot_control"> 
+</node> 
+
+<node pkg="robotica_final" type="encod_reader.py" name="encod_reader"> 
 </node> 
 
 </launch>
