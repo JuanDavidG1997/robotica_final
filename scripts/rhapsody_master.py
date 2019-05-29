@@ -60,6 +60,7 @@ class RhapsodyMaster:
         self.n_obstacles = data.n_obstacles
         self.obstacles = data.obstacles
         self.request_path = True
+        self.ask_for_estimation_service()
         return []
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -137,8 +138,8 @@ class RhapsodyMaster:
         try:
             start_estimation = rospy.ServiceProxy('start_estimation', EstimationService)
             pose_estimation = Pose()
-            pose_estimation.position.x = self.start.x
-            pose_estimation.position.y = self.start.y
+            pose_estimation.position.x = self.start[0]
+            pose_estimation.position.y = self.start[1]
             pose_estimation.orientation.w = self.start_orientation
             request = start_estimation(pose_estimation)
         except rospy.ServiceException:
@@ -179,7 +180,6 @@ class RhapsodyMaster:
                 ready_to_start = self.ask_for_ack_service()
                 if ready_to_start == 1:
                     self.change_state(READY_TO_START)
-            self.ask_for_estimation_service()
             # Received Start_Service
             # Asking for path. PATH_SERVICE
             if self.request_path:

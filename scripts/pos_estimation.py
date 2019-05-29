@@ -13,6 +13,7 @@ from robotica_final.msg import realVel
 L = 80.0
 radius = 29.3/2
 
+
 class posEstimator:
 
     def __init__(self):
@@ -26,7 +27,7 @@ class posEstimator:
         self.prevPos = [0.0, 0.0, 0.0]
         self.estimatedUncertainty = Covariance()
 
-        self.sigmaP = np.matrix([[0.0, 0.0, 0.0 ],[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]])
+        self.sigmaP = np.matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
 
     def real_vel_callback(self, data):
         self.angularVelLeft = data.left
@@ -34,7 +35,7 @@ class posEstimator:
         self.timeStamp = data.time
 
     def handle_estimate_service(self, data):
-        self.actualPos = [data.position.x, data.position.y, data.orientation.w]
+        self.actualPos = [data.data.position.x, data.data.position.y, data.data.orientation.w]
 
     def main(self):
         # --------------------------- ROS ---------------------------
@@ -97,13 +98,13 @@ class posEstimator:
 
             # --------------------- Estimate Covariance ---------------------
             # Intermediate terms
-            Fp = np.matrix([[1.0, 0.0, -deltaS*m.sin(theta + deltaTheta/2)],[0.0, 1.0, -deltaS*m.cos(theta + deltaTheta/2)],[0.0, 0.0, 1.0]])
+            Fp = np.matrix([[1.0, 0.0, -deltaS*m.sin(theta + deltaTheta/2)], [0.0, 1.0, -deltaS*m.cos(theta + deltaTheta/2)],[0.0, 0.0, 1.0]])
             ang = theta + deltaTheta/2
             fila1 = [0.5*m.cos(ang) - (deltaS/(4*L))*m.sin(ang), 0.5*m.cos(ang) + (deltaS/(4*L))*m.sin(ang)]
             fila2 = [0.5*m.sin(ang) + (deltaS/(4*L))*m.cos(ang), 0.5*m.sin(ang) - (deltaS/(4*L))*m.cos(ang)]
             fila3 = [1/(2*L), -1/(2*L)]
-            FdS = np.matrix([fila1,fila2,fila3])
-            sigmadS = np.matrix([[0.1*np.abs(deltaSR), 0.0 ],[0.0, 0.1*np.abs(deltaSL)]])
+            FdS = np.matrix([fila1, fila2, fila3])
+            sigmadS = np.matrix([[0.1*np.abs(deltaSR), 0.0], [0.0, 0.1*np.abs(deltaSL)]])
             # Build Covariance
             self.sigmaP = Fp*self.sigmaP*np.transpose(Fp) + FdS*sigmadS*np.transpose(FdS)
 
