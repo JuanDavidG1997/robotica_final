@@ -101,8 +101,8 @@ class RhapsodyMaster:
         k = 0
         while k < 1000000:
             msg = Twist()
-            msg.linear.x = 1
-            msg.angular.x = 1
+            msg.linear.x = 10
+            msg.angular.x = 10
             self.cmd_vel.publish(msg)
             self.change_state(MOVING)
             k = k + 1

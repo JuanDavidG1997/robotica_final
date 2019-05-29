@@ -37,7 +37,6 @@ FINISHED_TEST_COLOR = [255, 255, 255]
 
 class RhapsodyToolkit:
 
-	"""docstring for RhapsodyToolkit"""
 	def __init__(self):
 
 		# Speed variables
@@ -58,7 +57,7 @@ class RhapsodyToolkit:
 		self.lastTimeLowLevel = 0.0
 
 		# State variable
-		self.state = ACK_SERVICE
+		self.state = MOVING
 
 		# Color variable start
 		self.r_color = 0
@@ -191,7 +190,6 @@ class RhapsodyToolkit:
 		self.blue.ChangeDutyCycle(self.b_color/255*100)
 
 	def aileron_led(self, pwm):
-
 		if self.state == MOVING:
 			self.p_color = pwm
 
