@@ -102,7 +102,7 @@ class RhapsodyMaster:
         while k < 1000000:
             msg = Twist()
             msg.linear.x = 10
-            msg.angular.x = 10
+            msg.angular.x = 0
             self.cmd_vel.publish(msg)
             self.change_state(MOVING)
             k = k + 1
@@ -113,7 +113,6 @@ class RhapsodyMaster:
 
         except rospy.ServiceException:
             print("Service call to move failed")
-
 
     def ask_for_read(self):
         print("Requesting number reading...")
