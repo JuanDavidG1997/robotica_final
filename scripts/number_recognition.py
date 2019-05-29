@@ -29,8 +29,7 @@ class NumberRecognition():
 		self.takePhoto()
 		self.imageContours()
 		self.getDigits()
-		# concat and answer
-		return 3
+		return 1234
 
 	def updateFrame(self):
 		while True:
