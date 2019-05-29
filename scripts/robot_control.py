@@ -7,7 +7,7 @@ from std_msgs.msg import Int32
 from robotica_final.srv import *
 
 # Threshold
-THRESHOLD_LIN = 100
+THRESHOLD_LIN = 300
 THRESHOLD_ANG = 0.2
 # States
 WAITING = 0
@@ -16,9 +16,9 @@ EMERGENCY_STOP = 2
 FINISHED = 3
 POSITIONING = 4
 # Control variables
-K_RHO = 0.6
+K_RHO = 0.3
 K_ALPHA = 0.8
-K_BETA = -0.025
+K_BETA = -0.01
 K = [K_RHO, K_ALPHA, K_BETA]
 
 
